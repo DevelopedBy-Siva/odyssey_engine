@@ -14,10 +14,10 @@ class SocketEngine:
         self.socket.on_event("connect", self.__connect)
         self.socket.on_event("join", self.__join_room)
         self.socket.on_event("leave", self.__leave_room)
+        self.socket.on_event("send-story", self.__story)
 
     def __connect(self):
         username = request.args.get("username")
-        Data.refresh_sid(username, request.sid)
         print(f"User '{username}' is online...")
 
     def __join_room(self, data):
@@ -63,4 +63,12 @@ class SocketEngine:
             "entered-game",
             {"room_id": room_id},
             to=request.sid,
+        )
+
+    def __story(self, data):
+        emit(
+            "receive-story",
+            {"message": data["message"], "username": data["username"]},
+            to=data["room"],
+            include_self=False,
         )
