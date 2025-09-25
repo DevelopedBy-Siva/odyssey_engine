@@ -1,4 +1,7 @@
+import AntDesign from "@expo/vector-icons/AntDesign";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
 import { useState } from "react";
 import {
@@ -18,13 +21,17 @@ import lottie_json from "../assets/lottie/login.json";
 const Login = () => {
   const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState("");
+  const router = useRouter();
 
   const submit = async () => {
     if (username.trim().length === 0) return;
     setLoading(true);
     await axios
       .post("http://127.0.0.1:5000/login", { username: username })
-      .then(() => {})
+      .then(async () => {
+        await AsyncStorage.setItem("username", username);
+        router.replace("/(tabs)/home");
+      })
       .catch(() => {
         showToastable({
           message: "Failed to connect. Try again later.",
@@ -71,7 +78,10 @@ const Login = () => {
           {loading ? (
             <ActivityIndicator size="small" />
           ) : (
-            <Text style={style.buttonText}>Start</Text>
+            <View style={style.buttonTextContainer}>
+              <Text style={style.buttonText}>Step Inside</Text>
+              <AntDesign name="arrow-right" size={13} color="black" />
+            </View>
           )}
         </TouchableOpacity>
       </View>
@@ -95,19 +105,19 @@ const style = StyleSheet.create({
   },
 
   animation: {
-    width: "90%",
+    width: "85%",
     flex: 1,
   },
 
   inputContainer: {
     width: "100%",
-    marginBottom: 60,
+    marginBottom: 40,
     alignItems: "center",
   },
 
   title: {
     color: "#fff",
-    marginBottom: 50,
+    marginBottom: 40,
     fontSize: 30,
     fontWeight: 400,
     lineHeight: 40,
@@ -131,8 +141,17 @@ const style = StyleSheet.create({
     padding: 10,
     borderRadius: 50,
   },
+
+  buttonTextContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 10,
+  },
+
   buttonText: {
     textAlign: "center",
-    fontSize: 15,
+    fontSize: 14,
+    fontWeight: 400,
   },
 });
