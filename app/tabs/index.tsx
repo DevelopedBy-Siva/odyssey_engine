@@ -1,4 +1,4 @@
-import { Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
   return (
@@ -13,3 +13,12 @@ export default function Index() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  nav: {
+    backgroundColor: "#000",
+    color: "#fff",
+    padding: 10,
+    borderRadius: 5,
+  },
+});
