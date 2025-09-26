@@ -22,7 +22,10 @@ export default function TabsLayout() {
         name="index"
         options={{ headerShown: false, title: "Home" }}
       />
-      <Stack.Screen name="build-room" options={{ animation: "fade" }} />
+      <Stack.Screen
+        name="build-room"
+        options={{ animation: "fade", headerShown: false }}
+      />
       <Stack.Screen name="join-room" options={{ title: "Join Room" }} />
       <Stack.Screen name="world-arena" options={{ title: "World Arena" }} />
     </Stack>

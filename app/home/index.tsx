@@ -1,7 +1,10 @@
+import lottie_json from "@/assets/lottie/rob.json";
+import { getSocket } from "@/store/socket";
 import { useUserStore } from "@/store/userStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
+import { useEffect } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -9,14 +12,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import "react-native-get-random-values";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { showToastable } from "react-native-toastable";
-import io, { Socket } from "socket.io-client";
-
-import lottie_json from "@/assets/lottie/rob.json";
-import { useEffect } from "react";
-
-let socket: Socket;
+import { v4 as uuidv4 } from "uuid";
 
 export default function Home() {
   const username = useUserStore((state) => state.username);
@@ -38,7 +37,7 @@ export default function Home() {
     {
       name: "Build Room",
       bg: "#eb737e",
-      action: () => router.push("/home/build-room"),
+      action: createRoom,
     },
     {
       name: "Join Room",
@@ -57,35 +56,27 @@ export default function Home() {
     },
   ];
 
+  const socket = getSocket(username);
+
+  function createRoom() {
+    const id = uuidv4();
+    socket.emit("join", {
+      username: username,
+      room: id,
+      option: "create",
+    });
+  }
+
   useEffect(() => {
-    socket = io("http://127.0.0.1:5000", {
-      query: { username: username },
-    });
-
-    socket.on("connect", () => {
-      console.log("User connected!");
-    });
-
-    socket.on("notification", (data) => {
-      showToastable({
-        message: data.message,
-        status: "danger",
+    socket.on("entered-game", (data) => {
+      const { room_id } = data;
+      router.replace({
+        pathname: "/home/build-room",
+        params: { room: room_id, username: username },
       });
     });
-
-    socket.on("game-room", (data) => {
-      showToastable({
-        message: data.message,
-        status: "success",
-      });
-    });
-
-    socket.on("entered-game", (data) => {});
 
     return () => {
-      socket.off("connect");
-      socket.off("notification");
-      socket.off("game-room");
       socket.off("entered-game");
     };
   }, []);
