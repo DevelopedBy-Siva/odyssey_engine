@@ -1,4 +1,4 @@
-from flask_socketio import join_room, leave_room, send, emit
+from flask_socketio import join_room, leave_room, emit
 from flask import request
 
 from data import Data
@@ -7,6 +7,7 @@ from data import Data
 class SocketEngine:
     def __init__(self, socket):
         self.rooms = {}
+        self.socket = None
         self.socket = socket
         self.__events()
 
@@ -15,6 +16,7 @@ class SocketEngine:
         self.socket.on_event("join", self.__join_room)
         self.socket.on_event("leave", self.__leave_room)
         self.socket.on_event("send-story", self.__story)
+        self.socket.on_event("rooms", self.__available_rooms)
 
     def __connect(self):
         username = request.args.get("username")
@@ -24,7 +26,6 @@ class SocketEngine:
         username = data["username"]
         room_id = data.get("room")
         option = data.get("option")
-
         if option == "create":
             Data.create_room(room_id, username)
             self.__game_room(username, room_id)
@@ -45,17 +46,21 @@ class SocketEngine:
     def __leave_room(self, data):
         username = data["username"]
         room = data.get("room")
+        message = data.get("message")
         leave_room(room)
-        send(f"{username} has left the room.", to=room)
+        Data.exit_room(room, username)
+        self.__notify(message, id=room)
 
-    def __notify(self, msg):
-        emit("notification", {"message": msg}, to=request.sid)
+    def __notify(self, msg, id=None):
+        if not id:
+            id = request.sid
+        emit("notification", {"message": msg}, to=id)
 
     def __game_room(self, username, room_id):
         join_room(room_id)
         emit(
             "game-room",
-            {"message": f"'{username}' joined the game. Welcome!"},
+            {"message": f"'{username}' joined the game."},
             to=room_id,
             include_self=False,
         )
@@ -72,3 +77,7 @@ class SocketEngine:
             to=data["room"],
             include_self=False,
         )
+
+    def __available_rooms(self, _):
+        rooms = Data.get_rooms()
+        emit("available-rooms", {"rooms": rooms}, to=request.sid)

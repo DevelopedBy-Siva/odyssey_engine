@@ -15,6 +15,8 @@ class Api:
         def login():
             json = request.get_json()
             user = Data.get_user(json["username"])  # TODO: replace this with DB
+            is_exist = True
             if not user:
                 Data.add_user(json)
-            return jsonify({"message": "Login successful"}), 200
+                is_exist = False
+            return jsonify({"message": "Login successful", "is_exist": is_exist}), 200
