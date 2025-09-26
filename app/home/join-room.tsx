@@ -1,12 +1,12 @@
 import React from "react";
 import { Text, View } from "react-native";
 
-const Gameboard = () => {
+const JoinRoom = () => {
   return (
     <View>
-      <Text>gameboard</Text>
+      <Text>JoinRoom</Text>
     </View>
   );
 };
 
-export default Gameboard;
+export default JoinRoom;

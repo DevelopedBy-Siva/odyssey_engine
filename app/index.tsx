@@ -47,7 +47,6 @@ export default LandingPage;
 const styles = StyleSheet.create({
   view: {
     flex: 1,
-    backgroundColor: "#000",
     justifyContent: "center",
     alignItems: "center",
   },

@@ -99,7 +99,6 @@ const style = StyleSheet.create({
   view: {
     flex: 1,
     padding: 20,
-    backgroundColor: "#000",
   },
 
   animationContainer: {

@@ -38,14 +38,17 @@ export default function Home() {
     {
       name: "Build Room",
       bg: "#eb737e",
+      action: () => router.push("/home/build-room"),
     },
     {
       name: "Join Room",
       bg: "#dac3fb",
+      action: () => router.push("/home/join-room"),
     },
     {
       name: "World Arena",
       bg: "#ccf5b1",
+      action: () => router.push("/home/world-arena"),
     },
     {
       name: "Exit",
@@ -124,7 +127,6 @@ const styles = StyleSheet.create({
   view: {
     flex: 1,
     padding: 20,
-    backgroundColor: "#000",
   },
   scrollContent: {
     flexGrow: 1,
@@ -133,8 +135,8 @@ const styles = StyleSheet.create({
 
   welcomeTxt: {
     textAlign: "left",
-    fontWeight: 500,
-    color: "#fff",
+    fontWeight: 400,
+    color: "#8a8a8aff",
     fontSize: 22,
     textTransform: "capitalize",
   },
@@ -179,5 +181,6 @@ const styles = StyleSheet.create({
   optionTxt: {
     color: "#000",
     fontSize: 14,
+    fontWeight: 400,
   },
 });
