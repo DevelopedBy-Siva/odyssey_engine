@@ -4,19 +4,23 @@ import LottieView from "lottie-react-native";
 import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
+import { useUserStore } from "@/store/userStore";
 import lottie_json from "../assets/lottie/login.json";
 
 const LandingPage = () => {
   const router = useRouter();
+  const storeUsername = useUserStore((state) => state.setUsername);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const username = await AsyncStorage.getItem("username");
         setTimeout(() => {
-          if (username) router.replace("/(tabs)/home");
-          else router.replace("/login");
-        }, 4000);
+          if (username) {
+            storeUsername(username);
+            router.replace("/home");
+          } else router.replace("/login");
+        }, 2000);
       } catch (e) {
         router.replace("/login");
       }

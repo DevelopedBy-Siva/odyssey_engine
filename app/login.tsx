@@ -16,21 +16,25 @@ import {
 } from "react-native";
 import { showToastable } from "react-native-toastable";
 
+import { useUserStore } from "@/store/userStore";
 import lottie_json from "../assets/lottie/login.json";
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState("");
   const router = useRouter();
+  const storeUsername = useUserStore((state) => state.setUsername);
 
   const submit = async () => {
-    if (username.trim().length === 0) return;
+    const name = username.trim().toLowerCase();
+    if (name.length === 0) return;
     setLoading(true);
     await axios
-      .post("http://127.0.0.1:5000/login", { username: username })
+      .post("http://127.0.0.1:5000/login", { username: name })
       .then(async () => {
-        await AsyncStorage.setItem("username", username);
-        router.replace("/(tabs)/home");
+        await AsyncStorage.setItem("username", name);
+        storeUsername(name);
+        router.replace("/home");
       })
       .catch(() => {
         showToastable({
