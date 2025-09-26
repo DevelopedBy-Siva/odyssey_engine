@@ -16,16 +16,14 @@ export default function TabsLayout() {
         contentStyle: {
           backgroundColor: "#000",
         },
+        animation: "fade",
       }}
     >
       <Stack.Screen
         name="index"
         options={{ headerShown: false, title: "Home" }}
       />
-      <Stack.Screen
-        name="build-room"
-        options={{ animation: "fade", headerShown: false }}
-      />
+      <Stack.Screen name="build-room" options={{ headerShown: false }} />
       <Stack.Screen name="join-room" options={{ title: "Join Room" }} />
       <Stack.Screen name="world-arena" options={{ title: "World Arena" }} />
     </Stack>
