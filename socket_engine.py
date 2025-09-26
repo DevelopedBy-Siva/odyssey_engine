@@ -50,6 +50,7 @@ class SocketEngine:
         leave_room(room)
         Data.exit_room(room, username)
         self.__notify(message, id=room)
+        self.__available_rooms({}, True)
 
     def __notify(self, msg, id=None):
         if not id:
@@ -69,6 +70,7 @@ class SocketEngine:
             {"room_id": room_id},
             to=request.sid,
         )
+        self.__available_rooms({}, True)
 
     def __story(self, data):
         emit(
@@ -78,6 +80,6 @@ class SocketEngine:
             include_self=False,
         )
 
-    def __available_rooms(self, _):
+    def __available_rooms(self, _, broadcast=False):
         rooms = Data.get_rooms()
-        emit("available-rooms", {"rooms": rooms}, to=request.sid)
+        emit("available-rooms", {"rooms": rooms}, to=request.sid, broadcast=broadcast)
