@@ -30,7 +30,7 @@ const Login = () => {
     if (name.length === 0) return;
     setLoading(true);
     await axios
-      .post("http://127.0.0.1:5000/login", { username: name })
+      .post("http://192.168.0.162:5001/login", { username: name })
       .then(async () => {
         await AsyncStorage.setItem("username", name);
         storeUsername(name);
@@ -99,6 +99,7 @@ const style = StyleSheet.create({
   view: {
     flex: 1,
     padding: 20,
+    backgroundColor: "#000",
   },
 
   animationContainer: {

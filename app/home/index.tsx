@@ -118,6 +118,7 @@ const styles = StyleSheet.create({
   view: {
     flex: 1,
     padding: 20,
+    backgroundColor: "#000",
   },
   scrollContent: {
     flexGrow: 1,
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
   },
 
   optionsContainer: {
-    marginTop: 50,
+    marginTop: 60,
     display: "flex",
     flexDirection: "row",
     gap: 20,

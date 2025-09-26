@@ -5,7 +5,7 @@ let socket: Socket | null = null;
 
 export const getSocket = (username: string | null): Socket => {
   if (!socket) {
-    socket = io("http://127.0.0.1:5000", { query: { username } });
+    socket = io("http://192.168.0.162:5001", { query: { username } });
 
     socket.on("connect", () => {
       console.log("User connected!");

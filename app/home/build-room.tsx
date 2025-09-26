@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,11 +16,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { showToastable } from "react-native-toastable";
 import { TypeAnimation } from "react-native-type-animation";
 
+const bgs = ["#4b9e86", "#437eb4", "#8548a8", "#e99c8a"];
+
 const BuildRoom = () => {
   const { room, username } = useLocalSearchParams();
   const socket = getSocket(username.toString());
   const [userInput, setUserInput] = useState("");
   const route = useRouter();
+  const [isStarted, setIsStarted] = useState(false);
+  const [members, setMembers] = useState(["Adhi", "Jahnvi", "Sushant", "Siva"]);
 
   useEffect(() => {
     socket.on("game-room", (data) => {
@@ -28,8 +33,6 @@ const BuildRoom = () => {
         status: "success",
       });
     });
-
-    socket.on("entered-game", (data) => {});
 
     socket.on("receive-story", (data) => {});
 
@@ -60,38 +63,79 @@ const BuildRoom = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <View
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <SafeAreaView
         style={{
-          paddingLeft: 10,
-          paddingRight: 10,
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
+          flex: 1,
+          backgroundColor: "#000",
+          paddingHorizontal: 10,
+          paddingTop: 10,
         }}
       >
-        <Text style={{ color: "#fff", fontSize: 18, letterSpacing: 1 }}>
-          01:00
-        </Text>
-        <TouchableOpacity onPress={exit}>
+        <View
+          style={{
+            paddingLeft: 10,
+            paddingRight: 10,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <View style={{ paddingLeft: 8, flexDirection: "row", width: "30%" }}>
+            {members.map((item, idx) => (
+              <Text
+                style={{
+                  backgroundColor: bgs[idx],
+                  color: "#fff",
+                  width: 28,
+                  height: 28,
+                  lineHeight: 28,
+                  textAlign: "center",
+                  borderRadius: 50,
+                  alignContent: "center",
+                  marginLeft: -8,
+                  fontSize: 14,
+                }}
+                key={idx}
+              >
+                {item.charAt(0).toUpperCase()}
+              </Text>
+            ))}
+          </View>
+
           <Text
             style={{
-              backgroundColor: "red",
+              flex: 1,
+              textAlign: "center",
               color: "#fff",
-              textAlign: "justify",
-              paddingLeft: 12,
-              paddingRight: 12,
-              paddingTop: 5,
-              paddingBottom: 5,
-              borderRadius: 5,
-              fontSize: 14,
+              fontSize: 19,
+              letterSpacing: 1,
             }}
           >
-            Exit
+            01:00
           </Text>
-        </TouchableOpacity>
-      </View>
-      <KeyboardAvoidingView style={{ flex: 1, padding: 10 }}>
+          <View style={{ width: "30%", alignItems: "flex-end" }}>
+            <TouchableOpacity onPress={exit}>
+              <Text
+                style={{
+                  backgroundColor: "#fff",
+                  color: "#000",
+                  textAlign: "center",
+                  width: 50,
+                  paddingTop: 5,
+                  paddingBottom: 5,
+                  borderRadius: 5,
+                  fontSize: 14,
+                }}
+              >
+                Exit
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -139,8 +183,8 @@ const BuildRoom = () => {
             />
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
 

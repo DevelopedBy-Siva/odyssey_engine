@@ -49,7 +49,9 @@ const JoinRoom = () => {
   };
 
   return (
-    <View style={{ paddingTop: 20, paddingBottom: 20 }}>
+    <View
+      style={{ paddingTop: 20, paddingBottom: 20, backgroundColor: "#000" }}
+    >
       <TextInput
         selectionColor="#484848ff"
         placeholderTextColor="#484848ff"
