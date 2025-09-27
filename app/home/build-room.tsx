@@ -20,14 +20,20 @@ const bgs = ["#4b9e86", "#437eb4", "#8548a8", "#e99c8a"];
 
 const BuildRoom = () => {
   const { room, roomName, username, theme } = useLocalSearchParams();
-  const socket = getSocket(username.toString());
+  const socket = getSocket(username?.toString() || "");
   const [userInput, setUserInput] = useState("");
   const route = useRouter();
   const [isStarted, setIsStarted] = useState(false);
   const [members, setMembers] = useState(["Adhi", "Jahnvi", "Sushant", "Siva"]);
 
-  const selectedTheme = theme ? JSON.parse(theme.toString()) : { name: "Fantasy", bg: "#8548a8" };
-
+  let selectedTheme = { id: 1, name: "Medical Mayhem" };
+  if (typeof theme === "string") {
+    try {
+      selectedTheme = JSON.parse(theme);
+    } catch (e) {
+      console.warn("Invalid theme JSON:", e);
+    }
+  }
 
   useEffect(() => {
     socket.on("game-room", (data) => {
@@ -49,7 +55,7 @@ const BuildRoom = () => {
   const sendText = () => {
     if (userInput.length === 0) return;
     socket.emit("send-story", {
-      username: username,
+      username: username?.toString() || "",
       room: room,
       message: userInput,
     });
@@ -58,9 +64,9 @@ const BuildRoom = () => {
 
   const exit = () => {
     socket.emit("leave", {
-      username: username,
+      username: username?.toString() || "",
       room: room,
-      message: `${username} has left the room.`,
+      message: `${username?.toString() || "User"} has left the room.`,
     });
     route.replace("/home");
   };
@@ -118,7 +124,7 @@ const BuildRoom = () => {
               letterSpacing: 1,
             }}
           >
-            {roomName} • {selectedTheme.name} • 01:00
+            {roomName?.toString() || "Room"} • {selectedTheme.name} • 01:00
           </Text>
           <View style={{ width: "30%", alignItems: "flex-end" }}>
             <TouchableOpacity onPress={exit}>

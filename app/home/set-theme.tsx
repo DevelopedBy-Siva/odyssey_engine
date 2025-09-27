@@ -17,9 +17,9 @@ import { showToastable } from "react-native-toastable";
 import { v4 as uuidv4 } from "uuid";
 
 const themes = [
-  { id: 1, name: "Medical Mayhem", image: require("../../assets/themes/healthcare.jpg"), emoji: "🏥" },
-  { id: 2, name: "Corporate Crisis", image: require("../../assets/themes/office.jpg"), emoji: "🚀" },
-  { id: 3, name: "Crime Catastrophe", image: require("../../assets/themes/crime.jpg"), emoji: "🔍" }
+  { id: 1, name: "Medical Mayhem", image: require("../../assets/themes/healthcare.jpg")},
+  { id: 2, name: "Corporate Crisis", image: require("../../assets/themes/office.jpg")},
+  { id: 3, name: "Crime Catastrophe", image: require("../../assets/themes/crime.jpg")}
 ];
 
 const CreateRoom = () => {
@@ -66,7 +66,7 @@ const CreateRoom = () => {
         room: roomId, 
         username: username,
         roomName: roomName.trim(),
-        theme: JSON.stringify(selectedTheme),
+        theme: JSON.stringify({ id: selectedTheme.id, name: selectedTheme.name }),
         maxPlayers: maxPlayers,
       },
     });
