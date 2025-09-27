@@ -59,10 +59,12 @@ const Login = () => {
           source={lottie_json}
         />
       </View>
-      <Text style={style.title}>
-        <Text style={{ color: "#8a8a8aff" }}>Where AI crafts the story, </Text>
-        but you control the adventure.
-      </Text>
+      <View style={{ marginBottom: 40 }}>
+        <Text style={[style.title, { color: "#8a8a8aff" }]}>
+          AI builds the failure,
+        </Text>
+        <Text style={style.title}>but you forge the future.</Text>
+      </View>
       <View style={style.inputContainer}>
         <TextInput
           selectionColor="#484848ff"
@@ -121,7 +123,6 @@ const style = StyleSheet.create({
 
   title: {
     color: "#fff",
-    marginBottom: 40,
     fontSize: 30,
     fontWeight: 400,
     lineHeight: 40,

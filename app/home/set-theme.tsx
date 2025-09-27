@@ -3,30 +3,46 @@ import { useUserStore } from "@/store/userStore";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-    Image, KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { showToastable } from "react-native-toastable";
 import { v4 as uuidv4 } from "uuid";
 
 const themes = [
-  { id: 1, name: "Medical Mayhem", image: require("../../assets/themes/healthcare.jpg"), emoji: "🏥" },
-  { id: 2, name: "Corporate Crisis", image: require("../../assets/themes/office.jpg"), emoji: "🚀" },
-  { id: 3, name: "Crime Catastrophe", image: require("../../assets/themes/crime.jpg"), emoji: "🔍" }
+  {
+    id: 1,
+    name: "Medical Mayhem",
+    image: require("../../assets/themes/healthcare.jpg"),
+    emoji: "🏥",
+  },
+  {
+    id: 2,
+    name: "Corporate Crisis",
+    image: require("../../assets/themes/office.jpg"),
+    emoji: "🚀",
+  },
+  {
+    id: 3,
+    name: "Crime Catastrophe",
+    image: require("../../assets/themes/crime.jpg"),
+    emoji: "🔍",
+  },
 ];
 
 const CreateRoom = () => {
   const username = useUserStore((state) => state.username);
   const router = useRouter();
   const socket = getSocket(username);
-  
+
   const [roomName, setRoomName] = useState("");
   const [selectedTheme, setSelectedTheme] = useState(themes[0]);
   const [maxPlayers, setMaxPlayers] = useState("4");
@@ -53,8 +69,8 @@ const CreateRoom = () => {
     // Navigate to build room with preferences
     router.replace({
       pathname: "/home/build-room",
-      params: { 
-        room: roomId, 
+      params: {
+        room: roomId,
         username: username,
         roomName: roomName.trim(),
         theme: JSON.stringify(selectedTheme),
@@ -69,8 +85,7 @@ const CreateRoom = () => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <SafeAreaView style={styles.container}>
-
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
@@ -100,14 +115,14 @@ const CreateRoom = () => {
                   ]}
                   onPress={() => setSelectedTheme(theme)}
                 >
-                    <Image 
-                        source={theme.image} 
-                        style={styles.themeImage}
-                        resizeMode="cover"
-                    />
-                <View style={styles.themeOverlay}>
+                  <Image
+                    source={theme.image}
+                    style={styles.themeImage}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.themeOverlay}>
                     <Text style={styles.themeName}>{theme.name}</Text>
-                </View>
+                  </View>
                 </TouchableOpacity>
               ))}
             </View>
@@ -180,7 +195,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "500",
     marginBottom: 15,
-    marginTop: 15
+    marginTop: 15,
   },
   textInput: {
     backgroundColor: "#1a1a1a",
@@ -190,11 +205,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: "#333",
-    margin: 5
+    marginVertical: 5,
   },
   themeGrid: {
     flexDirection: "column",
-    gap: 15
+    gap: 15,
   },
   themeCard: {
     width: "100%",

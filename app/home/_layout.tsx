@@ -25,6 +25,7 @@ export default function TabsLayout() {
       />
       <Stack.Screen name="build-room" options={{ headerShown: false }} />
       <Stack.Screen name="join-room" options={{ title: "Join Room" }} />
+      <Stack.Screen name="set-theme" options={{ title: "Configure Room" }} />
       <Stack.Screen name="world-arena" options={{ title: "World Arena" }} />
     </Stack>
   );
