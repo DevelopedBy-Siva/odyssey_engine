@@ -4,13 +4,15 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
+  Modal,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { showToastable } from "react-native-toastable";
@@ -25,6 +27,7 @@ const BuildRoom = () => {
   const route = useRouter();
   const [isStarted, setIsStarted] = useState(false);
   const [members, setMembers] = useState(["Adhi", "Jahnvi", "Sushant", "Siva"]);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   let selectedTheme = { id: 1, name: "Medical Mayhem" };
   if (typeof theme === "string") {
@@ -69,6 +72,19 @@ const BuildRoom = () => {
       message: `${username?.toString() || "User"} has left the room.`,
     });
     route.replace("/home");
+  };
+
+  const handleExitPress = () => {
+    setShowExitModal(true);
+  };
+
+  const confirmExit = () => {
+    setShowExitModal(false);
+    exit();
+  };
+
+  const cancelExit = () => {
+    setShowExitModal(false);
   };
 
   return (
@@ -127,7 +143,7 @@ const BuildRoom = () => {
             {roomName?.toString() || "Room"} • {selectedTheme.name} • 01:00
           </Text>
           <View style={{ width: "30%", alignItems: "flex-end" }}>
-            <TouchableOpacity onPress={exit}>
+            <TouchableOpacity onPress={handleExitPress}>
               <Text
                 style={{
                   backgroundColor: "#fff",
@@ -192,6 +208,33 @@ const BuildRoom = () => {
             />
           </TouchableOpacity>
         </View>
+
+        {/* Exit Confirmation Modal */}
+        <Modal
+          visible={showExitModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={cancelExit}
+        >
+          <Pressable style={styles.modalOverlay} onPress={cancelExit}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalTitle}>Leave Room?</Text>
+              <Text style={styles.modalMessage}>
+                Are you sure you want to leave this room? Your progress will be lost.
+              </Text>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity style={styles.cancelButton} onPress={cancelExit}>
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.exitButton} onPress={confirmExit}>
+                  <Text style={styles.exitButtonText}>Leave</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Pressable>
+        </Modal>
+
+
       </SafeAreaView>
     </KeyboardAvoidingView>
   );
@@ -228,4 +271,61 @@ const styles = StyleSheet.create({
   subject: {
     color: "#fff",
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    backgroundColor: "#1a1a1a",
+    borderRadius: 12,
+    padding: 24,
+    margin: 20,
+    alignItems: "center",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  modalTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 12,
+  },
+  modalMessage: {
+    color: "#c1c1c1",
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  cancelButton: {
+    backgroundColor: "#333",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  cancelButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  exitButton: {
+    backgroundColor: "#dc3545",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  exitButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "500",
+  }
 });
