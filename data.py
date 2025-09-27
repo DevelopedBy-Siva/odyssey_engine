@@ -124,10 +124,20 @@ class Data:
         leaderboard.sort(key=lambda x: x["total_score"], reverse=True)
         return leaderboard[:limit]
 
+
+    # Add the parameters room name, room theme, and players to be saved in Data
     @staticmethod
-    def create_room(room_id, username):
+    def create_room(room_id, username, room_name=None, room_theme=None, max_players=4):
         """Create a new game room"""
-        room = {"members": [username], "started": False}
+        if not(2 <= max_players <= 4):
+            max_players = 4
+            
+        room = {"members": [username], 
+                "started": False,
+                "room_name": room_name,
+                "theme": room_theme,
+                "max_players": max_players
+                }
         Data.rooms[room_id] = room
 
     @staticmethod
@@ -137,7 +147,8 @@ class Data:
         if not room or room["started"]:
             return None
         members = room["members"]
-        if len(members) < 4:
+        # Allow only up to the max players defined for the room
+        if len(members) < room["max_players"]:
             Data.rooms[room_id]["members"].append(username)
             return True
 
