@@ -1,0 +1,10 @@
+# Redis client for Python
+redis==5.3.7
+
+# Mistral AI client
+mistralai==0.1.0
+
+# Optional: for Flask & SocketIO if you extend the game later
+flask==2.3.4
+flask-socketio==6.3.1
+eventlet==0.33.3
