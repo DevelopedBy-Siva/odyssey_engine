@@ -4,7 +4,6 @@ import { useUserStore } from "@/store/userStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
-import { useEffect } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -15,7 +14,6 @@ import {
 import "react-native-get-random-values";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { showToastable } from "react-native-toastable";
-import { v4 as uuidv4 } from "uuid";
 
 export default function Home() {
   const username = useUserStore((state) => state.username);
@@ -37,7 +35,7 @@ export default function Home() {
     {
       name: "Build Room",
       bg: "#eb737e",
-      action: createRoom,
+      action: () => router.push("/home/set-theme"),
     },
     {
       name: "Join Room",
@@ -58,28 +56,28 @@ export default function Home() {
 
   const socket = getSocket(username);
 
-  function createRoom() {
-    const id = uuidv4();
-    socket.emit("join", {
-      username: username,
-      room: id,
-      option: "create",
-    });
-  }
+  // function createRoom() {
+  //   const id = uuidv4();
+  //   socket.emit("join", {
+  //     username: username,
+  //     room: id,
+  //     option: "create",
+  //   });
+  // }
 
-  useEffect(() => {
-    socket.on("entered-game", (data) => {
-      const { room_id } = data;
-      router.replace({
-        pathname: "/home/build-room",
-        params: { room: room_id, username: username },
-      });
-    });
+  // useEffect(() => {
+  //   socket.on("entered-game", (data) => {
+  //     const { room_id } = data;
+  //     router.replace({
+  //       pathname: "/home/build-room",
+  //       params: { room: room_id, username: username },
+  //     });
+  //   });
 
-    return () => {
-      socket.off("entered-game");
-    };
-  }, []);
+  //   return () => {
+  //     socket.off("entered-game");
+  //   };
+  // }, []);
 
   return (
     <SafeAreaView style={styles.view}>
