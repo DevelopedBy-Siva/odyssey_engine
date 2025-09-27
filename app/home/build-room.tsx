@@ -19,12 +19,15 @@ import { TypeAnimation } from "react-native-type-animation";
 const bgs = ["#4b9e86", "#437eb4", "#8548a8", "#e99c8a"];
 
 const BuildRoom = () => {
-  const { room, username } = useLocalSearchParams();
+  const { room, username, theme } = useLocalSearchParams();
   const socket = getSocket(username.toString());
   const [userInput, setUserInput] = useState("");
   const route = useRouter();
   const [isStarted, setIsStarted] = useState(false);
   const [members, setMembers] = useState(["Adhi", "Jahnvi", "Sushant", "Siva"]);
+
+  const selectedTheme = theme ? JSON.parse(theme.toString()) : { name: "Fantasy", bg: "#8548a8" };
+
 
   useEffect(() => {
     socket.on("game-room", (data) => {
@@ -115,7 +118,7 @@ const BuildRoom = () => {
               letterSpacing: 1,
             }}
           >
-            01:00
+            {selectedTheme.name} • 01:00
           </Text>
           <View style={{ width: "30%", alignItems: "flex-end" }}>
             <TouchableOpacity onPress={exit}>
