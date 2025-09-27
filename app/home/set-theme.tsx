@@ -3,14 +3,14 @@ import { useUserStore } from "@/store/userStore";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-    Image, KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Image, KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { showToastable } from "react-native-toastable";
@@ -35,6 +35,15 @@ const CreateRoom = () => {
     if (!roomName.trim()) {
       showToastable({
         message: "Please enter a room name",
+        status: "warning",
+      });
+      return;
+    }
+
+    const parsedMax = parseInt(maxPlayers);
+    if (parsedMax < 2 || parsedMax > 4) {
+      showToastable({
+        message: "Player count must be between 2 and 4",
         status: "warning",
       });
       return;
@@ -117,7 +126,7 @@ const CreateRoom = () => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>No. of Players</Text>
             <View style={styles.playerOptions}>
-              {["1", "2", "3", "4"].map((count) => (
+              {["2", "3", "4"].map((count) => (
                 <TouchableOpacity
                   key={count}
                   style={[

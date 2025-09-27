@@ -19,7 +19,7 @@ import { TypeAnimation } from "react-native-type-animation";
 const bgs = ["#4b9e86", "#437eb4", "#8548a8", "#e99c8a"];
 
 const BuildRoom = () => {
-  const { room, username, theme } = useLocalSearchParams();
+  const { room, roomName, username, theme } = useLocalSearchParams();
   const socket = getSocket(username.toString());
   const [userInput, setUserInput] = useState("");
   const route = useRouter();
@@ -118,7 +118,7 @@ const BuildRoom = () => {
               letterSpacing: 1,
             }}
           >
-            {selectedTheme.name} • 01:00
+            {roomName} • {selectedTheme.name} • 01:00
           </Text>
           <View style={{ width: "30%", alignItems: "flex-end" }}>
             <TouchableOpacity onPress={exit}>
