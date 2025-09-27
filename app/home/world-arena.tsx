@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import data from "../../assets/data.json";
 
 interface UserRanking {
   username: string;
@@ -32,7 +33,7 @@ const WorldArena = () => {
   const fetchRankings = async () => {
     try {
       setError(null);
-      const response = await axios.get("http://127.0.0.1:5000/api/rankings");
+      const response = await axios.get(`http://${data.url}/api/rankings`);
 
       // Handle the new API structure with data, success, total_users
       if (response.data.success && response.data.data) {

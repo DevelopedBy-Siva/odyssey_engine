@@ -17,6 +17,7 @@ import {
 import { showToastable } from "react-native-toastable";
 
 import { useUserStore } from "@/store/userStore";
+import data from "../assets/data.json";
 import lottie_json from "../assets/lottie/login.json";
 
 const Login = () => {
@@ -30,7 +31,7 @@ const Login = () => {
     if (name.length === 0) return;
     setLoading(true);
     await axios
-      .post("http://127.0.0.1:5000/login", { username: name })
+      .post(`http://${data.url}/login`, { username: name })
       .then(async () => {
         await AsyncStorage.setItem("username", name);
         storeUsername(name);

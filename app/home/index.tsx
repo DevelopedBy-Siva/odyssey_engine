@@ -3,6 +3,7 @@ import { useUserStore } from "@/store/userStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
+import { useEffect } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -52,6 +53,10 @@ export default function Home() {
       action: logout,
     },
   ];
+
+  useEffect(() => {
+    return () => {};
+  }, []);
 
   return (
     <SafeAreaView style={styles.view}>
