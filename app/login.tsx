@@ -61,9 +61,9 @@ const Login = () => {
       </View>
       <View style={{ marginBottom: 40 }}>
         <Text style={[style.title, { color: "#8a8a8aff" }]}>
-          AI builds the failure,
+          Where AI builds failure,
         </Text>
-        <Text style={style.title}>but you forge the future.</Text>
+        <Text style={style.title}> you forge the future.</Text>
       </View>
       <View style={style.inputContainer}>
         <TextInput

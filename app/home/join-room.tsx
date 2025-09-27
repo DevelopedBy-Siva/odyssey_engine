@@ -56,7 +56,7 @@ const JoinRoom = () => {
         selectionColor="#484848ff"
         placeholderTextColor="#484848ff"
         style={style.searchInput}
-        placeholder="Search room id"
+        placeholder="Search room id..."
         keyboardType="default"
         value={query}
         onChangeText={setQuery}

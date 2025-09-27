@@ -17,24 +17,30 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { showToastable } from "react-native-toastable";
 import { v4 as uuidv4 } from "uuid";
 
-const themes = [
+export const themes = [
   {
     id: 1,
     name: "Medical Mayhem",
     image: require("../../assets/themes/healthcare.jpg"),
     emoji: "🏥",
+    intro_msg:
+      "I'm your Corporate Chaos Consultant. I turn business strategies into bankruptcy stories. When you're ready, I'm ready to crash some companies!",
   },
   {
     id: 2,
     name: "Corporate Crisis",
     image: require("../../assets/themes/office.jpg"),
     emoji: "🚀",
+    intro_msg:
+      "I'm your Corporate Chaos Consultant. I turn business strategies into bankruptcy stories. When you're ready, I'm ready to crash some companies!",
   },
   {
     id: 3,
     name: "Crime Catastrophe",
     image: require("../../assets/themes/crime.jpg"),
     emoji: "🔍",
+    intro_msg:
+      "I'm your Heist Hijinks Handler. I turn criminal plans into comedic catastrophes. Ready to botch some burglaries when you are!",
   },
 ];
 
@@ -75,6 +81,7 @@ const CreateRoom = () => {
         roomName: roomName.trim(),
         theme: JSON.stringify(selectedTheme),
         maxPlayers: maxPlayers,
+        isAdmin: 1,
       },
     });
   };
@@ -281,7 +288,7 @@ const styles = StyleSheet.create({
   playerOptionText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: 400,
   },
   selectedPlayerOptionText: {
     color: "#000",
@@ -296,6 +303,6 @@ const styles = StyleSheet.create({
   createButtonText: {
     color: "#000",
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: 400,
   },
 });

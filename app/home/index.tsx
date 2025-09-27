@@ -1,5 +1,4 @@
 import lottie_json from "@/assets/lottie/rob.json";
-import { getSocket } from "@/store/socket";
 import { useUserStore } from "@/store/userStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
@@ -54,31 +53,6 @@ export default function Home() {
     },
   ];
 
-  const socket = getSocket(username);
-
-  // function createRoom() {
-  //   const id = uuidv4();
-  //   socket.emit("join", {
-  //     username: username,
-  //     room: id,
-  //     option: "create",
-  //   });
-  // }
-
-  // useEffect(() => {
-  //   socket.on("entered-game", (data) => {
-  //     const { room_id } = data;
-  //     router.replace({
-  //       pathname: "/home/build-room",
-  //       params: { room: room_id, username: username },
-  //     });
-  //   });
-
-  //   return () => {
-  //     socket.off("entered-game");
-  //   };
-  // }, []);
-
   return (
     <SafeAreaView style={styles.view}>
       <ScrollView
@@ -129,12 +103,14 @@ const styles = StyleSheet.create({
     color: "#8a8a8aff",
     fontSize: 22,
     textTransform: "capitalize",
+    marginTop: 10,
   },
   welcomeTxtName: {
     textAlign: "left",
     fontWeight: 500,
     color: "#fff",
     fontSize: 74,
+    letterSpacing: 1,
     textTransform: "capitalize",
   },
 
