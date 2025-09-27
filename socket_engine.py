@@ -27,7 +27,17 @@ class SocketEngine:
         room_id = data.get("room")
         option = data.get("option")
         if option == "create":
-            Data.create_room(room_id, username)
+            
+            room_name = data.get("roomName")
+            room_theme = data.get("roomTheme")
+            max_players = data.get("maxPlayers", 4)
+
+            # Enforce min 2 and max 4 with feedback
+            if not isinstance(max_players, int) or not (2 <= max_players <= 4):
+                self.__notify(msg="Player count must be between 2 and 4")
+                return
+            
+            Data.create_room(room_id, username, room_name, room_theme, max_players)
             self.__game_room(username, room_id)
 
         elif option == "join":
