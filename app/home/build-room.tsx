@@ -7,13 +7,14 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView as ScrollViewType,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { showToastable } from "react-native-toastable";
@@ -24,10 +25,12 @@ import wait_lottie_json from "../../assets/lottie/wait.json";
 const BuildRoom = () => {
   const { room, username, theme, isAdmin } = useLocalSearchParams();
   const socket = getSocket(username.toString());
+
   const [userInput, setUserInput] = useState("");
   const route = useRouter();
   const [isStarted, setIsStarted] = useState<any>(null);
   const [members, setMembers] = useState(["Adhi", "Jahnvi", "Sushant", "Siva"]);
+
   const [isBegin, setIsBegin] = useState(false);
   const [timer, setTimer] = useState(60);
   const [isWaiting, setIsWaiting] = useState(false);
@@ -119,13 +122,12 @@ const BuildRoom = () => {
 
   const exit = () => {
     socket.emit("leave", {
-      username: username,
+      username: username?.toString() || "",
       room: room,
-      message: `${username} has left the room.`,
+      message: `${username?.toString() || "User"} has left the room.`,
     });
     route.replace("/home");
   };
-
   const gameBegan = () => {
     // todo
     setIsStarted(true);
@@ -179,7 +181,6 @@ const BuildRoom = () => {
               </Text>
             ))}
           </View>
-
           <View>
             <TouchableOpacity onPress={exit}>
               <Text
