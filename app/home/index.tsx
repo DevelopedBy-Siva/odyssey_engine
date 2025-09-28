@@ -1,4 +1,5 @@
 import lottie_json from "@/assets/lottie/rob.json";
+import { getSocket } from "@/store/socket";
 import { useUserStore } from "@/store/userStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
@@ -18,6 +19,7 @@ import { showToastable } from "react-native-toastable";
 export default function Home() {
   const username = useUserStore((state) => state.username);
   const router = useRouter();
+  const socket = getSocket(username);
 
   async function logout() {
     try {
@@ -55,7 +57,26 @@ export default function Home() {
   ];
 
   useEffect(() => {
-    return () => {};
+    socket.on("navigate-to-room", (data) => {
+      console.log("====================================");
+      console.log(data);
+      console.log("====================================");
+
+      router.replace({
+        pathname: "/home/build-room",
+        params: {
+          room: data["room"],
+          username: username,
+          roomName: data["room_name"],
+          theme: JSON.stringify(data["room_theme"]),
+          maxPlayers: data["room_players"],
+          isAdmin: data["option"] === "create" ? "1" : "0",
+        },
+      });
+    });
+    return () => {
+      socket.off("navigate-to-room");
+    };
   }, []);
 
   return (

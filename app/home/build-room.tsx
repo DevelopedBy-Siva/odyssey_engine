@@ -22,7 +22,7 @@ import ai_lottie_json from "../../assets/lottie/login.json";
 import wait_lottie_json from "../../assets/lottie/wait.json";
 
 const BuildRoom = () => {
-  const { room, username, theme, isAdmin = 0 } = useLocalSearchParams();
+  const { room, username, theme, isAdmin } = useLocalSearchParams();
   const socket = getSocket(username.toString());
   const [userInput, setUserInput] = useState("");
   const route = useRouter();
@@ -35,9 +35,7 @@ const BuildRoom = () => {
   const scrollViewRef = useRef<ScrollViewType | null>(null);
   const intervalRef = useRef<any>(null);
 
-  const selectedTheme = theme
-    ? JSON.parse(theme.toString())
-    : { name: "Fantasy", bg: "#8548a8" };
+  const selectedTheme = theme ? JSON.parse(theme.toString()) : {};
 
   const [conversations, setConversations] = useState<({} | null)[]>([
     { txt: "Hello! 👋" },
@@ -246,7 +244,7 @@ const BuildRoom = () => {
                     styles.userResponseContainer,
                     {
                       backgroundColor:
-                        from === undefined ? "#689bedff" : "#3d3d3dff",
+                        from === undefined ? "#645f5aff" : "#3d3d3dff",
                       marginLeft: from === undefined ? "auto" : 0,
                       borderRadius: 10,
                       overflow: "hidden",
@@ -306,7 +304,7 @@ const BuildRoom = () => {
             );
           })}
         </ScrollViewType>
-        {isStarted === false && isAdmin ? (
+        {isStarted === false && isAdmin === "1" ? (
           <View style={{ height: 100, paddingTop: 25, alignItems: "center" }}>
             <TouchableOpacity onPress={gameBegan}>
               <Text
@@ -324,7 +322,7 @@ const BuildRoom = () => {
               </Text>
             </TouchableOpacity>
           </View>
-        ) : isStarted === false && !isAdmin ? (
+        ) : isStarted === false && isAdmin === "0" ? (
           <View style={{ gap: 15, paddingTop: 25, height: 100 }}>
             <ActivityIndicator size="large" />
             <Text

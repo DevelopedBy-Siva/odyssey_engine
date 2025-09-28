@@ -1,6 +1,5 @@
 import { getSocket } from "@/store/socket";
 import { useUserStore } from "@/store/userStore";
-import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Image,
@@ -46,7 +45,6 @@ export const themes = [
 
 const CreateRoom = () => {
   const username = useUserStore((state) => state.username);
-  const router = useRouter();
   const socket = getSocket(username);
 
   const [roomName, setRoomName] = useState("");
@@ -70,19 +68,6 @@ const CreateRoom = () => {
       roomName: roomName.trim(),
       theme: selectedTheme,
       maxPlayers: parseInt(maxPlayers),
-    });
-
-    // Navigate to build room with preferences
-    router.replace({
-      pathname: "/home/build-room",
-      params: {
-        room: roomId,
-        username: username,
-        roomName: roomName.trim(),
-        theme: JSON.stringify(selectedTheme),
-        maxPlayers: maxPlayers,
-        isAdmin: 1,
-      },
     });
   };
 
