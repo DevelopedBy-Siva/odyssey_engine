@@ -1,0 +1,9 @@
+version: "3.8"
+services:
+  redis:
+    image: redis:latest
+    container_name: redis-server
+    ports:
+      - "192.168.0.168:6379:6379"
+    restart: unless-stopped
+    command: redis-server --bind 0.0.0.0

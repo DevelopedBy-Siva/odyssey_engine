@@ -1,13 +1,10 @@
 from datetime import datetime
 import redis
-import json
 from config import Config
 
 app_config = Config()
 
 class Data:
-    users = []
-    rooms = {}
     
     @staticmethod
     def get_redis_client():
@@ -25,10 +22,6 @@ class Data:
         redis_client = Data.get_redis_client()
         user_data = redis_client.json().get(f"user:{username}")
         return user_data
-        # for user in Data.users:
-        #     if username.lower().strip() in user:
-        #         return user
-        # return None
 
     @staticmethod
     def get_user_stats(username):
@@ -80,14 +73,13 @@ class Data:
             return False
         
         # Update stats
-        current_stats["user_details"] = username  # Store user details
+        current_stats["user_details"] = username 
         current_stats["total_games"] += 1
         current_stats["total_score"] += game_score
         current_stats["average_score"] = current_stats["total_score"] / current_stats["total_games"]
         current_stats["last_played"] = datetime.now().isoformat()
         
-        if game_score >= 80:
-            current_stats["games_won"] += 1
+        # Note: games_won will be updated separately based on final rankings
         
         # Save updated stats
         redis_client.json().set(f"user_stats:{username}", "$", current_stats)
@@ -99,7 +91,69 @@ class Data:
             redis_client.json().set(f"user:{username}", "$", user_data)
         
         return True
-    
+
+    @staticmethod
+    def update_user_last_active(username):
+        """Update user's last active time"""
+        redis_client = Data.get_redis_client()
+        
+        # Get current user data
+        user_data = Data.get_user(username)
+        if user_data:
+            user_data["last_active"] = datetime.now().isoformat()
+            redis_client.json().set(f"user:{username}", "$", user_data)
+            return True
+        return False
+
+    @staticmethod
+    def update_user_stats_from_rankings(game_results):
+        """Update user stats based on game final rankings"""
+        redis_client = Data.get_redis_client()
+        
+        # game_results should be a list of players sorted by rank
+        # [{"username": "player1", "rank": 1, "total_score": 95}, ...]
+        
+        for i, player_result in enumerate(game_results):
+            username = player_result["username"]
+            rank = player_result.get("rank", i + 1)
+            total_score = player_result.get("total_score", 0)
+            
+            # Get current stats
+            current_stats = Data.get_user_stats(username)
+            if not current_stats:
+                continue
+            
+            # Update basic stats
+            current_stats["total_games"] += 1
+            current_stats["total_score"] += total_score
+            current_stats["average_score"] = current_stats["total_score"] / current_stats["total_games"]
+            current_stats["last_played"] = datetime.now().isoformat()
+            
+            # Award win based on rank (1st place wins)
+            if rank == 1:
+                current_stats["games_won"] += 1
+            
+            # Add achievement based on rank
+            if rank == 1:
+                if "First Place" not in current_stats.get("achievements", []):
+                    current_stats.setdefault("achievements", []).append("First Place")
+            elif rank == 2:
+                if "Second Place" not in current_stats.get("achievements", []):
+                    current_stats.setdefault("achievements", []).append("Second Place")
+            elif rank == 3:
+                if "Third Place" not in current_stats.get("achievements", []):
+                    current_stats.setdefault("achievements", []).append("Third Place")
+            
+            # Save updated stats
+            redis_client.json().set(f"user_stats:{username}", "$", current_stats)
+            
+            # Update last_active in user data
+            user_data = Data.get_user(username)
+            if user_data:
+                user_data["last_active"] = datetime.now().isoformat()
+                redis_client.json().set(f"user:{username}", "$", user_data)
+        
+        return True
 
     @staticmethod
     def get_leaderboard(limit=10):
@@ -113,11 +167,15 @@ class Data:
         for key in keys:
             stats = redis_client.json().get(key)
             if stats:
+                # Extract username from user_details field
+                user_details = stats.get("user_details", "")
+                username = user_details if isinstance(user_details, str) else key.replace("user_stats:", "")
+                
                 leaderboard.append({
-                    "username": stats["username"],
-                    "total_score": stats["total_score"],
-                    "average_score": stats["average_score"],
-                    "games_won": stats["games_won"]
+                    "username": username,
+                    "total_score": stats.get("total_score", 0),
+                    "average_score": stats.get("average_score", 0.0),
+                    "games_won": stats.get("games_won", 0)
                 })
         
         # Sort by total score and return top users
@@ -131,62 +189,125 @@ class Data:
         """Create a new game room"""
         if not(2 <= max_players <= 4):
             max_players = 4
+        
+        redis_client = Data.get_redis_client()
+        
+        # Check if room already exists
+        if redis_client.exists(f"room:{room_id}"):
+            return False
             
-        room = {"members": [username], 
-                "started": False,
-                "room_name": room_name,
-                "theme": room_theme,
-                "max_players": max_players
-                }
-        Data.rooms[room_id] = room
+        room = {
+            "members": [username], 
+            "started": False,
+            "room_name": room_name or "",
+            "theme": room_theme or "climate_change",
+            "max_players": max_players,
+            "created_at": datetime.now().isoformat(),
+            "host": username
+        }
+        
+        # Store room in Redis
+        redis_client.json().set(f"room:{room_id}", "$", room)
+        return True
 
     @staticmethod
     def join_room(room_id, username):
-        # room = Data.rooms.get(room_id)
-        room = Data.rooms[room_id]
-        if not room or room["started"]:
+        """Join a room"""
+        redis_client = Data.get_redis_client()
+        
+        # Get room data from Redis
+        room = redis_client.json().get(f"room:{room_id}")
+        if not room:
             return None
-        members = room["members"]
+        
+        if room.get("started", False):
+            return None
+        
+        members = room.get("members", [])
+        max_players = room.get("max_players", 4)
+        
         # Allow only up to the max players defined for the room
-        if len(members) < room["max_players"]:
-            Data.rooms[room_id]["members"].append(username)
+        if len(members) < max_players and username not in members:
+            members.append(username)
+            room["members"] = members
+            redis_client.json().set(f"room:{room_id}", "$", room)
             return True
 
         return False
 
     @staticmethod
     def exit_room(room_id, username):
-        # room = Data.rooms.get(room_id)
-        room = Data.rooms[room_id]
-        if not room or room["started"]:
+        """Exit a room"""
+        redis_client = Data.get_redis_client()
+        
+        # Get room data from Redis
+        room = redis_client.json().get(f"room:{room_id}")
+        if not room:
             return None
-        members = room["members"]
+        
+        if room.get("started", False):
+            return None
+        
+        members = room.get("members", [])
         if members:
             members = [member for member in members if member != username]
             if len(members) == 0:
-                del Data.rooms[room_id]
+                # Delete room if empty
+                redis_client.delete(f"room:{room_id}")
                 return True
-            Data.rooms[room_id]["members"] = members
-            return True
+            else:
+                # Update room with remaining members
+                room["members"] = members
+                redis_client.json().set(f"room:{room_id}", "$", room)
+                return True
 
         return False
 
     @staticmethod
     def join_random_room(room_id, username):
-        for room_id in Data.rooms:
-            room = Data.rooms[room_id]
-            if len(room["members"]) < 4 and not room["started"]:
-                Data.rooms[room_id]["members"].append(username)
-                return True
+        """Join a random available room"""
+        redis_client = Data.get_redis_client()
+        
+        # Get all room keys
+        room_keys = redis_client.keys("room:*")
+        
+        for room_key in room_keys:
+            room = redis_client.json().get(room_key)
+            if room and len(room.get("members", [])) < 4 and not room.get("started", False):
+                # Found available room, join it
+                members = room.get("members", [])
+                if username not in members:
+                    members.append(username)
+                    room["members"] = members
+                    redis_client.json().set(room_key, "$", room)
+                    return True
         return False
 
     @staticmethod
     def get_rooms():
+        """Get all available rooms"""
+        redis_client = Data.get_redis_client()
         rooms = []
-        for room in Data.rooms:
-            members = len(Data.rooms[room]["members"])
-            if not Data.rooms[room]["started"] and members < 4:
-                rooms.append({"room_id": room, "room_size": members})
+        
+        # Get all room keys
+        room_keys = redis_client.keys("room:*")
+        
+        for room_key in room_keys:
+            room = redis_client.json().get(room_key)
+            if room:
+                members = len(room.get("members", []))
+                max_players = room.get("max_players", 4)
+                if not room.get("started", False) and members < max_players:
+                    # Extract room_id from key (room:room_id)
+                    room_id = room_key.replace("room:", "")
+                    rooms.append({
+                        "room_id": room_id, 
+                        "room_size": members,
+                        "max_players": max_players,
+                        "room_name": room.get("room_name", ""),
+                        "theme": room.get("theme", ""),
+                        "host": room.get("host", "")
+                    })
         return rooms
     
     @staticmethod
@@ -232,3 +353,92 @@ class Data:
         all_users.sort(key=lambda x: x["total_score"], reverse=True)
         
         return all_users
+
+    @staticmethod
+    def get_room_info(room_id):
+        """Get detailed room information"""
+        redis_client = Data.get_redis_client()
+        room = redis_client.json().get(f"room:{room_id}")
+        
+        if not room:
+            return None
+        
+        return {
+            "room_id": room_id,
+            "room_name": room.get("room_name", ""),
+            "theme": room.get("theme", ""),
+            "members": room.get("members", []),
+            "max_players": room.get("max_players", 4),
+            "started": room.get("started", False),
+            "host": room.get("host", ""),
+            "created_at": room.get("created_at", ""),
+            "current_players": len(room.get("members", []))
+        }
+
+    @staticmethod
+    def update_room_status(room_id, status):
+        """Update room status"""
+        redis_client = Data.get_redis_client()
+        room = redis_client.json().get(f"room:{room_id}")
+        
+        if room:
+            room["started"] = status
+            redis_client.json().set(f"room:{room_id}", "$", room)
+            return True
+        return False
+
+    @staticmethod
+    def get_active_games():
+        """Get all active games"""
+        redis_client = Data.get_redis_client()
+        active_games = []
+        
+        # Get all room keys
+        room_keys = redis_client.keys("room:*")
+        
+        for room_key in room_keys:
+            room = redis_client.json().get(room_key)
+            if room and room.get("started", False):
+                # Extract room_id from key (room:room_id)
+                room_id = room_key.replace("room:", "")
+                active_games.append({
+                    "room_id": room_id,
+                    "room_name": room.get("room_name", ""),
+                    "theme": room.get("theme", ""),
+                    "players": room.get("members", []),
+                    "host": room.get("host", "")
+                })
+        return active_games
+
+    @staticmethod
+    def delete_room(room_id):
+        """Delete a specific room"""
+        redis_client = Data.get_redis_client()
+        
+        # Check if room exists
+        if not redis_client.exists(f"room:{room_id}"):
+            return False
+        
+        # Delete the room
+        redis_client.delete(f"room:{room_id}")
+        return True
+
+    @staticmethod
+    def cleanup_empty_rooms():
+        """Clean up empty rooms"""
+        redis_client = Data.get_redis_client()
+        empty_rooms = []
+        
+        # Get all room keys
+        room_keys = redis_client.keys("room:*")
+        
+        for room_key in room_keys:
+            room = redis_client.json().get(room_key)
+            if not room or not room.get("members") or len(room.get("members", [])) == 0:
+                empty_rooms.append(room_key)
+        
+        # Delete empty rooms
+        for room_key in empty_rooms:
+            redis_client.delete(room_key)
+        
+        return len(empty_rooms)
