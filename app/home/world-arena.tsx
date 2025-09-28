@@ -8,8 +8,9 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
+import data from "../../assets/data.json";
 
 interface UserRanking {
   username: string;
@@ -32,23 +33,23 @@ const WorldArena = () => {
   const fetchRankings = async () => {
     try {
       setError(null);
-      const response = await axios.get("http://localhost:5000/api/rankings");
-      
+      const response = await axios.get(`http://${data.url}/api/rankings`);
+
       // Handle the new API structure with data, success, total_users
       if (response.data.success && response.data.data) {
         console.log("API Response:", response.data);
         console.log("Users data:", response.data.data);
-        
+
         const sortedUsers = response.data.data
           .sort((a: any, b: any) => b.total_score - a.total_score)
           .map((user: any, index: number) => {
             console.log("Processing user:", user);
             return {
               ...user,
-              rank: index + 1
+              rank: index + 1,
             };
           });
-        
+
         setRankings(sortedUsers);
       } else {
         setError("Invalid response format from server.");
@@ -95,7 +96,7 @@ const WorldArena = () => {
   }
 
   return (
-    <ScrollView 
+    <ScrollView
       style={style.container}
       refreshControl={
         <RefreshControl
@@ -123,55 +124,67 @@ const WorldArena = () => {
       ) : (
         <View style={style.rankingsContainer}>
           {rankings.map((user, index) => (
-            <View 
-              key={`${user.username}-${index}`} 
+            <View
+              key={`${user.username}-${index}`}
               style={[
                 style.rankingItem,
                 index === 0 && style.topRanking,
-                index < 3 && style.podiumRanking
+                index < 3 && style.podiumRanking,
               ]}
             >
               <View style={style.rankInfo}>
-                <Text style={[style.rankIcon, { color: getRankColor(user.rank) }]}>
+                <Text
+                  style={[style.rankIcon, { color: getRankColor(user.rank) }]}
+                >
                   {getRankIcon(user.rank)}
                 </Text>
                 <View style={style.userInfo}>
-                    <Text style={style.username}>
-                      {user.username || 'Unknown Player'}
-                    </Text>
-                  <Text style={style.score}>{user.total_score.toLocaleString()} points</Text>
+                  <Text style={style.username}>
+                    {user.username || "Unknown Player"}
+                  </Text>
+                  <Text style={style.score}>
+                    {user.total_score.toLocaleString()} points
+                  </Text>
                   <View style={style.statsRow}>
-                    <Text style={style.statText}>Games: {user.total_games}</Text>
+                    <Text style={style.statText}>
+                      Games: {user.total_games}
+                    </Text>
                     <Text style={style.statText}>Wins: {user.games_won}</Text>
-                    <Text style={style.statText}>Avg: {user.average_score}</Text>
+                    <Text style={style.statText}>
+                      Avg: {user.average_score}
+                    </Text>
                   </View>
                   {user.achievements.length > 0 && (
                     <View style={style.achievementsContainer}>
                       {user.achievements.slice(0, 2).map((achievement, idx) => (
                         <View key={idx} style={style.achievementBadge}>
-                          <Text style={style.achievementText}>{achievement}</Text>
+                          <Text style={style.achievementText}>
+                            {achievement}
+                          </Text>
                         </View>
                       ))}
                       {user.achievements.length > 2 && (
-                        <Text style={style.moreAchievements}>+{user.achievements.length - 2}</Text>
+                        <Text style={style.moreAchievements}>
+                          +{user.achievements.length - 2}
+                        </Text>
                       )}
                     </View>
                   )}
                 </View>
               </View>
-              
+
               {user.rank <= 3 && (
                 <View style={style.badge}>
-                  <AntDesign 
-                    name="star" 
-                    size={16} 
-                    color={getRankColor(user.rank)} 
+                  <AntDesign
+                    name="star"
+                    size={16}
+                    color={getRankColor(user.rank)}
                   />
                 </View>
               )}
             </View>
           ))}
-          
+
           {rankings.length === 0 && !error && (
             <View style={style.emptyContainer}>
               <AntDesign name="trophy" size={48} color="#8a8a8aff" />

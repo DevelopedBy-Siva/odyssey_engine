@@ -4,6 +4,7 @@ import { useUserStore } from "@/store/userStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
+import { useEffect } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -18,6 +19,7 @@ import { showToastable } from "react-native-toastable";
 export default function Home() {
   const username = useUserStore((state) => state.username);
   const router = useRouter();
+  const socket = getSocket(username);
 
   async function logout() {
     try {
@@ -54,30 +56,28 @@ export default function Home() {
     },
   ];
 
-  const socket = getSocket(username);
+  useEffect(() => {
+    socket.on("navigate-to-room", (data) => {
+      console.log("====================================");
+      console.log(data);
+      console.log("====================================");
 
-  // function createRoom() {
-  //   const id = uuidv4();
-  //   socket.emit("join", {
-  //     username: username,
-  //     room: id,
-  //     option: "create",
-  //   });
-  // }
-
-  // useEffect(() => {
-  //   socket.on("entered-game", (data) => {
-  //     const { room_id } = data;
-  //     router.replace({
-  //       pathname: "/home/build-room",
-  //       params: { room: room_id, username: username },
-  //     });
-  //   });
-
-  //   return () => {
-  //     socket.off("entered-game");
-  //   };
-  // }, []);
+      router.replace({
+        pathname: "/home/build-room",
+        params: {
+          room: data["room"],
+          username: username,
+          roomName: data["room_name"],
+          theme: JSON.stringify(data["room_theme"]),
+          maxPlayers: data["room_players"],
+          isAdmin: data["option"] === "create" ? "1" : "0",
+        },
+      });
+    });
+    return () => {
+      socket.off("navigate-to-room");
+    };
+  }, []);
 
   return (
     <SafeAreaView style={styles.view}>
@@ -129,12 +129,14 @@ const styles = StyleSheet.create({
     color: "#8a8a8aff",
     fontSize: 22,
     textTransform: "capitalize",
+    marginTop: 10,
   },
   welcomeTxtName: {
     textAlign: "left",
     fontWeight: 500,
     color: "#fff",
     fontSize: 74,
+    letterSpacing: 1,
     textTransform: "capitalize",
   },
 

@@ -1,32 +1,53 @@
 import { getSocket } from "@/store/socket";
 import { useUserStore } from "@/store/userStore";
-import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  Image, KeyboardAvoidingView,
+  Image,
+  KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { showToastable } from "react-native-toastable";
 import { v4 as uuidv4 } from "uuid";
 
-const themes = [
-  { id: 1, name: "Medical Mayhem", image: require("../../assets/themes/healthcare.jpg")},
-  { id: 2, name: "Corporate Crisis", image: require("../../assets/themes/office.jpg")},
-  { id: 3, name: "Crime Catastrophe", image: require("../../assets/themes/crime.jpg")}
+
+export const themes = [
+  {
+    id: 1,
+    name: "Medical Mayhem",
+    image: require("../../assets/themes/healthcare.jpg"),
+    emoji: "🏥",
+    intro_msg:
+      "I'm your Corporate Chaos Consultant. I turn business strategies into bankruptcy stories. When you're ready, I'm ready to crash some companies!",
+  },
+  {
+    id: 2,
+    name: "Corporate Crisis",
+    image: require("../../assets/themes/office.jpg"),
+    emoji: "🚀",
+    intro_msg:
+      "I'm your Corporate Chaos Consultant. I turn business strategies into bankruptcy stories. When you're ready, I'm ready to crash some companies!",
+  },
+  {
+    id: 3,
+    name: "Crime Catastrophe",
+    image: require("../../assets/themes/crime.jpg"),
+    emoji: "🔍",
+    intro_msg:
+      "I'm your Heist Hijinks Handler. I turn criminal plans into comedic catastrophes. Ready to botch some burglaries when you are!",
+  },
 ];
 
 const CreateRoom = () => {
   const username = useUserStore((state) => state.username);
-  const router = useRouter();
   const socket = getSocket(username);
-  
+
   const [roomName, setRoomName] = useState("");
   const [selectedTheme, setSelectedTheme] = useState(themes[0]);
   const [maxPlayers, setMaxPlayers] = useState("4");
@@ -58,18 +79,6 @@ const CreateRoom = () => {
       theme: selectedTheme,
       maxPlayers: parseInt(maxPlayers),
     });
-
-    // Navigate to build room with preferences
-    router.replace({
-      pathname: "/home/build-room",
-      params: { 
-        room: roomId, 
-        username: username,
-        roomName: roomName.trim(),
-        theme: JSON.stringify({ id: selectedTheme.id, name: selectedTheme.name }),
-        maxPlayers: maxPlayers,
-      },
-    });
   };
 
   return (
@@ -78,8 +87,7 @@ const CreateRoom = () => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <SafeAreaView style={styles.container}>
-
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
@@ -109,14 +117,14 @@ const CreateRoom = () => {
                   ]}
                   onPress={() => setSelectedTheme(theme)}
                 >
-                    <Image 
-                        source={theme.image} 
-                        style={styles.themeImage}
-                        resizeMode="cover"
-                    />
-                <View style={styles.themeOverlay}>
+                  <Image
+                    source={theme.image}
+                    style={styles.themeImage}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.themeOverlay}>
                     <Text style={styles.themeName}>{theme.name}</Text>
-                </View>
+                  </View>
                 </TouchableOpacity>
               ))}
             </View>
@@ -189,7 +197,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "500",
     marginBottom: 15,
-    marginTop: 15
+    marginTop: 15,
   },
   textInput: {
     backgroundColor: "#1a1a1a",
@@ -199,11 +207,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: "#333",
-    margin: 5
+    marginVertical: 5,
   },
   themeGrid: {
     flexDirection: "column",
-    gap: 15
+    gap: 15,
   },
   themeCard: {
     width: "100%",
@@ -275,7 +283,7 @@ const styles = StyleSheet.create({
   playerOptionText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: 400,
   },
   selectedPlayerOptionText: {
     color: "#000",
@@ -290,6 +298,6 @@ const styles = StyleSheet.create({
   createButtonText: {
     color: "#000",
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: 400,
   },
 });
