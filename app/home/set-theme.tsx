@@ -1,20 +1,25 @@
+import { AnimatedCard, MinimalisticButton } from "@/components/AnimatedComponents";
+import { BorderRadius, Colors, Layout, Shadows, Spacing, Typography } from "@/components/DesignSystem";
+import { ThemeCard } from "@/components/ModernCard";
+import { ModernHeader } from "@/components/ModernHeader";
+import { ModernInput } from "@/components/ModernInput";
 import { getSocket } from "@/store/socket";
 import { useUserStore } from "@/store/userStore";
-import React, { useState } from "react";
+import { useRouter } from "expo-router";
+import { useState } from "react";
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import 'react-native-get-random-values';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { showToastable } from "react-native-toastable";
-import { v4 as uuidv4 } from "uuid";
+// Removed uuid import - using 5-digit random ID instead
 
 
 export const themes = [
@@ -24,7 +29,7 @@ export const themes = [
     image: require("../../assets/themes/healthcare.jpg"),
     emoji: "🏥",
     intro_msg:
-      "I'm your Corporate Chaos Consultant. I turn business strategies into bankruptcy stories. When you're ready, I'm ready to crash some companies!",
+      "Hey there! 🏥 Ready to save some lives? Let's see if you can handle the medical madness!",
   },
   {
     id: 2,
@@ -32,7 +37,7 @@ export const themes = [
     image: require("../../assets/themes/office.jpg"),
     emoji: "🚀",
     intro_msg:
-      "I'm your Corporate Chaos Consultant. I turn business strategies into bankruptcy stories. When you're ready, I'm ready to crash some companies!",
+      "Welcome to the office! 💼 Think you can handle corporate chaos? Let's find out!",
   },
   {
     id: 3,
@@ -40,17 +45,24 @@ export const themes = [
     image: require("../../assets/themes/crime.jpg"),
     emoji: "🔍",
     intro_msg:
-      "I'm your Heist Hijinks Handler. I turn criminal plans into comedic catastrophes. Ready to botch some burglaries when you are!",
+      "Detective mode activated! 🕵️‍♂️ Time to solve some mysteries and catch the bad guys!",
   },
 ];
 
 const CreateRoom = () => {
   const username = useUserStore((state) => state.username);
   const socket = getSocket(username);
+  const colors = Colors;
+  const router = useRouter();
 
   const [roomName, setRoomName] = useState("");
   const [selectedTheme, setSelectedTheme] = useState(themes[0]);
   const [maxPlayers, setMaxPlayers] = useState("4");
+
+  // Generate a 5-digit random room ID
+  const generateRoomId = () => {
+    return Math.floor(10000 + Math.random() * 90000).toString();
+  };
 
   const createRoom = () => {
     if (!roomName.trim()) {
@@ -70,13 +82,13 @@ const CreateRoom = () => {
       return;
     }
 
-    const roomId = uuidv4();
+    const roomId = generateRoomId();
     socket.emit("join", {
       username: username,
       room: roomId,
       option: "create",
       roomName: roomName.trim(),
-      theme: selectedTheme,
+      roomTheme: selectedTheme,
       maxPlayers: parseInt(maxPlayers),
     });
   };
@@ -86,82 +98,118 @@ const CreateRoom = () => {
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <SafeAreaView style={styles.container}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Room Name Input */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Room Name</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="Enter a room name..."
-              placeholderTextColor="#666"
-              value={roomName}
-              onChangeText={setRoomName}
-              maxLength={30}
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.background, { backgroundColor: colors.background }]}>
+          <ModernHeader
+            title="Create Room"
+            subtitle="Set up your game environment"
+            showBackButton={true}
+            onBackPress={() => router.back()}
+          />
+          
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <AnimatedCard
+              style={[styles.firstSection, { backgroundColor: colors.surface }]}
+              direction="up"
+              delay={100}
+            >
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Room Name</Text>
+              <ModernInput
+                placeholder="Enter a room name..."
+                value={roomName}
+                onChangeText={setRoomName}
+                maxLength={30}
+                leftIcon="room-service"
+                containerStyle={styles.inputContainer}
+              />
+            </AnimatedCard>
+
+            <AnimatedCard
+              style={[styles.section, { backgroundColor: colors.surface }]}
+              direction="up"
+              delay={200}
+            >
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Select Theme</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.themeScrollContainer}
+                style={styles.themeScrollView}
+              >
+                {themes.map((theme, index) => (
+                  <ThemeCard
+                    key={theme.id}
+                    theme={theme}
+                    isSelected={selectedTheme.id === theme.id}
+                    onSelect={() => setSelectedTheme(theme)}
+                    animated={true}
+                    delay={300 + (index * 100)}
+                    style={styles.themeCardContainer}
+                  />
+                ))}
+              </ScrollView>
+            </AnimatedCard>
+
+            <AnimatedCard
+              style={[styles.lastSection, { backgroundColor: colors.surface }]}
+              direction="up"
+              delay={400}
+            >
+              <Text style={[styles.compactSectionTitle, { color: colors.textPrimary }]}>Number of Players</Text>
+              <View style={styles.materialSliderContainer}>
+                <View style={[styles.sliderTrack, { backgroundColor: colors.border }]}>
+                  <View style={[
+                    styles.sliderTrackActive,
+                    { 
+                      width: `${(parseInt(maxPlayers) - 1) * 33.33}%`,
+                      backgroundColor: colors.primary
+                    }
+                  ]} />
+                </View>
+                {["1", "2", "3", "4"].map((count, index) => (
+                  <TouchableOpacity
+                    key={count}
+                    style={[
+                      styles.sliderTick,
+                      { left: `${(index * 33.33)}%` },
+                      parseInt(maxPlayers) === parseInt(count) && styles.sliderTickActive
+                    ]}
+                    onPress={() => setMaxPlayers(count)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[
+                      styles.tickDot,
+                      { backgroundColor: colors.border },
+                      parseInt(maxPlayers) === parseInt(count) && styles.tickDotActive
+                    ]} />
+                    <Text style={[
+                      styles.tickLabel,
+                      { color: colors.textSecondary },
+                      parseInt(maxPlayers) === parseInt(count) && styles.tickLabelActive
+                    ]}>
+                      {count}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </AnimatedCard>
+          </ScrollView>
+
+          <View style={styles.buttonContainer}>
+            <MinimalisticButton
+              title="Create Room"
+              onPress={createRoom}
+              variant="primary"
+              size="lg"
+              style={styles.createButton}
+              textStyle={{ color: '#ffffff' }}
             />
           </View>
-
-          {/* Theme Selection */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Select Theme</Text>
-            <View style={styles.themeGrid}>
-              {themes.map((theme) => (
-                <TouchableOpacity
-                  key={theme.id}
-                  style={[
-                    styles.themeCard,
-                    selectedTheme.id === theme.id && styles.selectedTheme,
-                  ]}
-                  onPress={() => setSelectedTheme(theme)}
-                >
-                  <Image
-                    source={theme.image}
-                    style={styles.themeImage}
-                    resizeMode="cover"
-                  />
-                  <View style={styles.themeOverlay}>
-                    <Text style={styles.themeName}>{theme.name}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          {/* Max Players */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>No. of Players</Text>
-            <View style={styles.playerOptions}>
-              {["2", "3", "4"].map((count) => (
-                <TouchableOpacity
-                  key={count}
-                  style={[
-                    styles.playerOption,
-                    maxPlayers === count && styles.selectedPlayerOption,
-                  ]}
-                  onPress={() => setMaxPlayers(count)}
-                >
-                  <Text
-                    style={[
-                      styles.playerOptionText,
-                      maxPlayers === count && styles.selectedPlayerOptionText,
-                    ]}
-                  >
-                    {count}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </ScrollView>
-
-        {/* Create Button */}
-        <TouchableOpacity style={styles.createButton} onPress={createRoom}>
-          <Text style={styles.createButtonText}>Create Room</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
+      </View>
+    </SafeAreaView>
     </KeyboardAvoidingView>
   );
 };
@@ -171,133 +219,116 @@ export default CreateRoom;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
-    paddingHorizontal: 20,
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingTop: 10,
-    paddingBottom: 20,
-  },
-  title: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "600",
+  background: {
+    flex: 1,
   },
   scrollContent: {
-    paddingBottom: 20,
+    paddingHorizontal: Layout.componentSpacing.contentPadding,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing['6xl'],
+    flexGrow: 1,
   },
   section: {
-    marginBottom: 30,
+    width: '100%',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.xl,
+    marginBottom: Spacing.xl,
+    ...Shadows.sm,
+  },
+  firstSection: {
+    width: '100%',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.xl,
+    marginBottom: Spacing.xl,
+    ...Shadows.sm,
+  },
+  lastSection: {
+    width: '100%',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.xl,
+    marginBottom: Spacing.xl,
+    ...Shadows.sm,
   },
   sectionTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "500",
-    marginBottom: 15,
-    marginTop: 15,
+    fontSize: Typography.lg,
+    fontFamily: Typography.fontFamily.semibold,
+    marginBottom: Spacing.lg,
   },
-  textInput: {
-    backgroundColor: "#1a1a1a",
-    color: "#fff",
-    padding: 15,
-    borderRadius: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: "#333",
-    marginVertical: 5,
+  compactSectionTitle: {
+    fontSize: Typography.lg,
+    fontFamily: Typography.fontFamily.semibold,
+    marginBottom: Spacing.md,
   },
-  themeGrid: {
-    flexDirection: "column",
-    gap: 15,
+  inputContainer: {
+    marginBottom: 0,
   },
-  themeCard: {
-    width: "100%",
-    height: 120,
-    borderRadius: 15,
-    position: "relative",
-    overflow: "hidden",
-    opacity: 0.8,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+  themeScrollView: {
+    marginTop: Spacing.sm,
   },
-  themeImage: {
-    width: "100%",
-    height: "100%",
-    position: "absolute",
-    top: 0,
-    left: 0,
-    borderRadius: 15,
+  themeScrollContainer: {
+    paddingRight: Spacing.lg,
   },
-  themeOverlay: {
-    position: "absolute",
-    bottom: 0,
+  themeCardContainer: {
+    marginRight: Spacing.lg,
+  },
+  materialSliderContainer: {
+    marginTop: Spacing.lg,
+    height: 60,
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  sliderTrack: {
+    position: 'absolute',
+    top: 20,
     left: 0,
     right: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    borderBottomLeftRadius: 15,
-    borderBottomRightRadius: 15,
+    height: 4,
+    borderRadius: 2,
   },
-  selectedTheme: {
-    opacity: 1,
-    borderWidth: 3,
-    borderColor: "#fff",
+  sliderTrackActive: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    height: 4,
+    borderRadius: 2,
   },
-  themeEmoji: {
-    fontSize: 24,
-    marginBottom: 5,
+  sliderTick: {
+    position: 'absolute',
+    top: 12,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: -20,
   },
-  themeName: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "500",
-    textAlign: "center",
+  sliderTickActive: {
+    transform: [{ scale: 1.1 }],
   },
-  playerOptions: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-    justifyContent: "space-between",
+  tickDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    marginBottom: 4,
   },
-  playerOption: {
-    backgroundColor: "#1a1a1a",
-    paddingVertical: 15,
-    paddingHorizontal: 25,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#333",
-    minWidth: 60,
-    alignItems: "center",
+  tickDotActive: {
+    ...Shadows.sm,
   },
-  selectedPlayerOption: {
-    backgroundColor: "#eb737e",
-    borderColor: "#eb737e",
+  tickLabel: {
+    fontSize: Typography.sm,
+    fontFamily: Typography.fontFamily.medium,
+    textAlign: 'center',
   },
-  playerOptionText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: 400,
+  tickLabelActive: {
+    fontFamily: Typography.fontFamily.semibold,
   },
-  selectedPlayerOptionText: {
-    color: "#000",
+  buttonContainer: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xl,
   },
   createButton: {
-    backgroundColor: "#eb737e",
-    paddingVertical: 18,
-    borderRadius: 15,
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  createButtonText: {
-    color: "#000",
-    fontSize: 18,
-    fontWeight: 400,
+    paddingVertical: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    ...Shadows.lg,
   },
 });

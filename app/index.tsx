@@ -1,10 +1,8 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useUserStore } from "@/store/userStore";
 import { useRouter } from "expo-router";
 import LottieView from "lottie-react-native";
 import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
-
-import { useUserStore } from "@/store/userStore";
 import lottie_json from "../assets/lottie/login.json";
 
 const LandingPage = () => {
@@ -14,19 +12,16 @@ const LandingPage = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const username = await AsyncStorage.getItem("username");
+        // Always go to login page - don't use cached username
         setTimeout(() => {
-          if (username) {
-            storeUsername(username);
-            router.replace("/home");
-          } else router.replace("/login");
+          router.replace("/login");
         }, 2000);
-      } catch (e) {
+      } catch (error) {
         router.replace("/login");
       }
     };
     checkAuth();
-  }, []);
+  }, [router, storeUsername]);
 
   return (
     <View style={styles.view}>

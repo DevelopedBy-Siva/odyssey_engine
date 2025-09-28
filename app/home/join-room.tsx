@@ -1,30 +1,45 @@
+import { AnimatedCard } from "@/components/AnimatedComponents";
+import { BorderRadius, Colors, Layout, Spacing, Typography } from "@/components/DesignSystem";
+import { GameRoomCard } from "@/components/ModernCard";
+import { ModernHeader } from "@/components/ModernHeader";
+import { SearchInput } from "@/components/ModernInput";
 import { getSocket } from "@/store/socket";
 import { useUserStore } from "@/store/userStore";
-import React, { useEffect, useState } from "react";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  FlatList,
+  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type Room = {
-  room_size: number;
   room_id: string;
+  room_size: number;
+  max_players: number;
+  room_name: string;
+  theme: any;
+  host: string;
 };
 
 const JoinRoom = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [query, setQuery] = useState("");
   const [visibleRooms, setVisibleRooms] = useState<Room[]>([]);
+  const [deletingRooms, setDeletingRooms] = useState<Set<string>>(new Set());
   const username = useUserStore((state) => state.username);
+  const colors = Colors;
   const socket = getSocket(username);
+  const router = useRouter();
 
   useEffect(() => {
     const new_rooms = rooms.filter((item) =>
-      item.room_id.toLowerCase().includes(query.trim().toLowerCase())
+      item.room_id.toLowerCase().includes(query.trim().toLowerCase()) ||
+      item.room_name.toLowerCase().includes(query.trim().toLowerCase()) ||
+      item.host.toLowerCase().includes(query.trim().toLowerCase())
     );
     setVisibleRooms(new_rooms);
   }, [query, rooms]);
@@ -35,10 +50,41 @@ const JoinRoom = () => {
       setRooms(data.rooms);
     });
 
+    socket.on("room_deleted", (data) => {
+      // Remove the room from the list
+      setRooms(prevRooms => prevRooms.filter(room => room.room_id !== data.room_id));
+    });
+
+    socket.on("notification", (data) => {
+      // Handle delete success/failure notifications
+      if (data.message.includes("deleted successfully")) {
+        // Remove from deleting state
+        setDeletingRooms(prev => {
+          const newSet = new Set(prev);
+          // Find the room that was deleted by checking which one was in deleting state
+          for (const roomId of prev) {
+            newSet.delete(roomId);
+          }
+          return newSet;
+        });
+      } else if (data.message.includes("delete")) {
+        // Remove from deleting state on error
+        setDeletingRooms(prev => {
+          const newSet = new Set(prev);
+          for (const roomId of prev) {
+            newSet.delete(roomId);
+          }
+          return newSet;
+        });
+      }
+    });
+
     return () => {
       socket.off("available-rooms");
+      socket.off("room_deleted");
+      socket.off("notification");
     };
-  }, []);
+  }, [socket]);
 
   const join = (id: string) => {
     socket.emit("join", {
@@ -48,102 +94,130 @@ const JoinRoom = () => {
     });
   };
 
-  return (
-    <View
-      style={{ paddingTop: 20, paddingBottom: 20, backgroundColor: "#000" }}
-    >
-      <TextInput
-        selectionColor="#484848ff"
-        placeholderTextColor="#484848ff"
-        style={style.searchInput}
-        placeholder="Search room id..."
-        keyboardType="default"
-        value={query}
-        onChangeText={setQuery}
-      />
+  const deleteRoom = (id: string) => {
+    // Set loading state for this room
+    setDeletingRooms(prev => new Set(prev).add(id));
+    
+    socket.emit("delete-room", {
+      room: id,
+    });
+  };
 
-      {visibleRooms.length === 0 ? (
-        <Text style={{ color: "#8a8a8aff", textAlign: "center", fontSize: 14 }}>
-          No rooms found
-        </Text>
-      ) : (
-        <FlatList
-          data={visibleRooms}
-          keyExtractor={(_, idx) => idx.toString()}
-          renderItem={({ item }) => (
-            <View style={style.room}>
-              <Text
-                style={{ fontSize: 28, fontWeight: "500", color: "#dac3fb" }}
-              >
-                {item.room_size} / 4
-              </Text>
-              <View style={style.row}>
-                <TouchableOpacity
-                  onPress={() => join(item.room_id)}
-                  style={style.joinBtn}
-                >
-                  <Text style={{ fontSize: 14 }}>Join</Text>
-                </TouchableOpacity>
-                <Text
-                  style={{
-                    marginTop: 10,
-                    textAlign: "right",
-                    color: "#8a8a8aff",
-                    fontSize: 11,
-                  }}
-                >
-                  ID: {item.room_id}
-                </Text>
-              </View>
-            </View>
-          )}
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.background, { backgroundColor: colors.background }]}>
+        <ModernHeader
+          title="Join Room"
+          subtitle="Find and join existing game rooms"
+          showBackButton={true}
+          onBackPress={() => router.back()}
         />
-      )}
-    </View>
+        
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.searchSection}>
+            <SearchInput
+              placeholder="Search by room name, ID, or host..."
+              value={query}
+              onChangeText={setQuery}
+              containerStyle={styles.searchContainer}
+            />
+          </View>
+
+          <View style={styles.resultsSection}>
+            {visibleRooms.length === 0 ? (
+              <AnimatedCard
+                style={styles.emptyState}
+                direction="up"
+                delay={200}
+              >
+                <MaterialCommunityIcons
+                  name="magnify"
+                  size={48}
+                  color={colors.textTertiary}
+                  style={styles.emptyIcon}
+                />
+                <Text style={styles.emptyTitle}>No rooms found</Text>
+                <Text style={styles.emptySubtitle}>
+                  Try adjusting your search terms or create a new room
+                </Text>
+              </AnimatedCard>
+            ) : (
+              <View style={styles.roomsList}>
+                {visibleRooms.map((room, index) => (
+                  <GameRoomCard
+                    key={room.room_id}
+                    roomName={room.room_name || "Unnamed Room"}
+                    theme={typeof room.theme === 'string' ? room.theme : room.theme?.name || "Default"}
+                    host={room.host}
+                    roomId={room.room_id}
+                    currentPlayers={room.room_size}
+                    maxPlayers={room.max_players}
+                    onJoin={() => join(room.room_id)}
+                    onDelete={() => deleteRoom(room.room_id)}
+                    isDeleting={deletingRooms.has(room.room_id)}
+                    animated={true}
+                    delay={index * 100}
+                  />
+                ))}
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 };
 
 export default JoinRoom;
 
-const style = StyleSheet.create({
-  view: {
+const styles = StyleSheet.create({
+  container: {
     flex: 1,
-    gap: 10,
   },
-  room: {
-    padding: 15,
-    paddingTop: 20,
-    paddingBottom: 20,
-    borderBottomWidth: 0.2,
-    borderBottomColor: "#8a8a8aff",
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  background: {
+    flex: 1,
   },
-  row: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-end",
-    gap: 5,
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: Layout.spacing['5xl'],
   },
-  joinBtn: {
-    backgroundColor: "#fff",
-    padding: 4,
-    borderRadius: 10,
-    width: 60,
-    alignItems: "center",
-    paddingTop: 8,
-    paddingBottom: 8,
+  searchSection: {
+    paddingHorizontal: Layout.componentSpacing.contentPadding,
+    paddingTop: Layout.componentSpacing.contentPadding,
+    paddingBottom: Layout.componentSpacing.formFieldGap,
   },
-  searchInput: {
-    marginTop: 30,
-    marginBottom: 30,
-    width: "100%",
-    borderWidth: 1,
-    padding: 20,
-    borderRadius: 10,
-    borderColor: "#484848ff",
-    color: "#989898ff",
+  searchContainer: {
+    marginBottom: 0,
+  },
+  resultsSection: {
+    paddingHorizontal: Layout.componentSpacing.contentPadding,
+  },
+  roomsList: {
+    gap: Layout.componentSpacing.cardGap,
+  },
+  emptyState: {
+    alignItems: 'center',
+    padding: Layout.spacing['4xl'],
+    borderRadius: BorderRadius.lg,
+    marginTop: Layout.componentSpacing.sectionGap,
+  },
+  emptyIcon: {
+    marginBottom: Layout.componentSpacing.contentPadding,
+  },
+  emptyTitle: {
+    fontSize: Typography.xl,
+    fontWeight: Typography.semibold,
+    marginBottom: Spacing.sm,
+    textAlign: 'center',
+    color: Colors.textPrimary,
+  },
+  emptySubtitle: {
+    fontSize: Typography.sm,
+    textAlign: 'center',
+    lineHeight: Typography.lineHeight.normal * Typography.sm,
+    color: Colors.textSecondary,
   },
 });

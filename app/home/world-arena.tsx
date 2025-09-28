@@ -1,15 +1,20 @@
-import { AntDesign } from "@expo/vector-icons";
+import { AnimatedCard, LoadingSpinner } from "@/components/AnimatedComponents";
+import { BorderRadius, Colors, Layout, Shadows, Spacing, Typography } from "@/components/DesignSystem";
+import { RankingCard } from "@/components/ModernCard";
+import { ModernHeader } from "@/components/ModernHeader";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import data from "../../assets/data.json";
 
 interface UserRanking {
@@ -29,6 +34,8 @@ const WorldArena = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const colors = Colors;
+  const router = useRouter();
 
   const fetchRankings = async () => {
     try {
@@ -37,26 +44,19 @@ const WorldArena = () => {
 
       // Handle the new API structure with data, success, total_users
       if (response.data.success && response.data.data) {
-        console.log("API Response:", response.data);
-        console.log("Users data:", response.data.data);
-
         const sortedUsers = response.data.data
           .sort((a: any, b: any) => b.total_score - a.total_score)
-          .map((user: any, index: number) => {
-            console.log("Processing user:", user);
-            return {
-              ...user,
-              rank: index + 1,
-            };
-          });
+          .map((user: any, index: number) => ({
+            ...user,
+            rank: index + 1,
+          }));
 
         setRankings(sortedUsers);
       } else {
         setError("Invalid response format from server.");
       }
-    } catch (err) {
+    } catch {
       setError("Failed to fetch rankings. Please try again.");
-      console.error("Error fetching rankings:", err);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -72,333 +72,259 @@ const WorldArena = () => {
     fetchRankings();
   }, []);
 
-  const getRankIcon = (rank: number) => {
-    if (rank === 1) return "🥇";
-    if (rank === 2) return "🥈";
-    if (rank === 3) return "🥉";
-    return `#${rank}`;
-  };
-
-  const getRankColor = (rank: number) => {
-    if (rank === 1) return "#FFD700";
-    if (rank === 2) return "#C0C0C0";
-    if (rank === 3) return "#CD7F32";
-    return "#8a8a8aff";
-  };
 
   if (loading) {
     return (
-      <View style={style.loadingContainer}>
-        <ActivityIndicator size="large" color="#fff" />
-        <Text style={style.loadingText}>Loading rankings...</Text>
+      <View style={styles.container}>
+        <View style={styles.background}>
+          <ModernHeader
+            title="World Arena"
+            subtitle="Global Rankings"
+            showBackButton={true}
+            onBackPress={() => router.back()}
+          />
+          <View style={styles.loadingContainer}>
+            <LoadingSpinner size={48} color={colors.primary} />
+            <Text style={styles.loadingText}>Loading rankings...</Text>
+          </View>
+        </View>
       </View>
     );
   }
 
   return (
-    <ScrollView
-      style={style.container}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor="#fff"
-          colors={["#fff"]}
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.background, { backgroundColor: colors.background }]}>
+        <ModernHeader
+          title="World Arena"
+          subtitle="Global Rankings"
+          showBackButton={true}
+          onBackPress={() => router.back()}
         />
-      }
-    >
-      <View style={style.header}>
-        <Text style={style.title}>🏆 World Arena Rankings</Text>
-        <Text style={style.subtitle}>Top performers across the realm</Text>
-        <Text style={style.totalUsers}>Total Players: {rankings.length}</Text>
-      </View>
-
-      {error ? (
-        <View style={style.errorContainer}>
-          <AntDesign name="exclamation-circle" size={24} color="#ff6b6b" />
-          <Text style={style.errorText}>{error}</Text>
-          <TouchableOpacity style={style.retryButton} onPress={fetchRankings}>
-            <Text style={style.retryButtonText}>Retry</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View style={style.rankingsContainer}>
-          {rankings.map((user, index) => (
-            <View
-              key={`${user.username}-${index}`}
-              style={[
-                style.rankingItem,
-                index === 0 && style.topRanking,
-                index < 3 && style.podiumRanking,
-              ]}
-            >
-              <View style={style.rankInfo}>
-                <Text
-                  style={[style.rankIcon, { color: getRankColor(user.rank) }]}
-                >
-                  {getRankIcon(user.rank)}
-                </Text>
-                <View style={style.userInfo}>
-                  <Text style={style.username}>
-                    {user.username || "Unknown Player"}
-                  </Text>
-                  <Text style={style.score}>
-                    {user.total_score.toLocaleString()} points
-                  </Text>
-                  <View style={style.statsRow}>
-                    <Text style={style.statText}>
-                      Games: {user.total_games}
-                    </Text>
-                    <Text style={style.statText}>Wins: {user.games_won}</Text>
-                    <Text style={style.statText}>
-                      Avg: {user.average_score}
-                    </Text>
-                  </View>
-                  {user.achievements.length > 0 && (
-                    <View style={style.achievementsContainer}>
-                      {user.achievements.slice(0, 2).map((achievement, idx) => (
-                        <View key={idx} style={style.achievementBadge}>
-                          <Text style={style.achievementText}>
-                            {achievement}
-                          </Text>
-                        </View>
-                      ))}
-                      {user.achievements.length > 2 && (
-                        <Text style={style.moreAchievements}>
-                          +{user.achievements.length - 2}
-                        </Text>
-                      )}
-                    </View>
-                  )}
-                </View>
+        
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
+          showsVerticalScrollIndicator={false}
+        >
+          <AnimatedCard
+            style={styles.headerStats}
+            direction="up"
+            delay={100}
+          >
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <MaterialCommunityIcons
+                  name="trophy"
+                  size={24}
+                  color={colors.warning}
+                />
+                <Text style={styles.statNumber}>{rankings.length}</Text>
+                <Text style={styles.statLabel}>Total Players</Text>
               </View>
+              <View style={styles.statItem}>
+                <MaterialCommunityIcons
+                  name="star"
+                  size={24}
+                  color={colors.accent}
+                />
+                <Text style={styles.statNumber}>
+                  {rankings.length > 0 ? rankings[0].total_score.toLocaleString() : 0}
+                </Text>
+                <Text style={styles.statLabel}>Top Score</Text>
+              </View>
+              <View style={styles.statItem}>
+                <MaterialCommunityIcons
+                  name="gamepad-variant"
+                  size={24}
+                  color={colors.primary}
+                />
+                <Text style={styles.statNumber}>
+                  {rankings.reduce((sum, user) => sum + user.total_games, 0)}
+                </Text>
+                <Text style={styles.statLabel}>Games Played</Text>
+              </View>
+            </View>
+          </AnimatedCard>
 
-              {user.rank <= 3 && (
-                <View style={style.badge}>
-                  <AntDesign
-                    name="star"
-                    size={16}
-                    color={getRankColor(user.rank)}
+          {error ? (
+            <AnimatedCard
+              style={styles.errorContainer}
+              direction="up"
+              delay={200}
+            >
+              <MaterialCommunityIcons
+                name="alert-circle"
+                size={48}
+                color={colors.error}
+                style={styles.errorIcon}
+              />
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity
+                style={styles.retryButton}
+                onPress={fetchRankings}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.retryButtonText}>Retry</Text>
+              </TouchableOpacity>
+            </AnimatedCard>
+          ) : (
+            <View style={styles.rankingsContainer}>
+              {rankings.map((user, index) => (
+                <RankingCard
+                  key={`${user.username}-${index}`}
+                  rank={user.rank}
+                  username={user.username || "Unknown Player"}
+                  score={user.total_score}
+                  games={user.total_games}
+                  wins={user.games_won}
+                  achievements={user.achievements}
+                  averageScore={user.average_score}
+                  lastPlayed={user.last_played}
+                  lastActive={user.lastActive}
+                  animated={true}
+                  delay={200 + (index * 100)}
+                />
+              ))}
+
+              {rankings.length === 0 && !error && (
+                <AnimatedCard
+                  style={styles.emptyContainer}
+                  direction="up"
+                  delay={200}
+                >
+                  <MaterialCommunityIcons
+                    name="trophy"
+                    size={48}
+                    color={colors.textTertiary}
+                    style={styles.emptyIcon}
                   />
-                </View>
+                  <Text style={styles.emptyText}>No rankings available yet</Text>
+                  <Text style={styles.emptySubtext}>Be the first to compete!</Text>
+                </AnimatedCard>
               )}
             </View>
-          ))}
-
-          {rankings.length === 0 && !error && (
-            <View style={style.emptyContainer}>
-              <AntDesign name="trophy" size={48} color="#8a8a8aff" />
-              <Text style={style.emptyText}>No rankings available yet</Text>
-              <Text style={style.emptySubtext}>Be the first to compete!</Text>
-            </View>
           )}
-        </View>
-      )}
-    </ScrollView>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 };
 
 export default WorldArena;
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
   },
-
+  background: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: Layout.componentSpacing.contentPadding,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing['6xl'],
+    flexGrow: 1,
+  },
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#000",
-    padding: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing['4xl'],
   },
-
   loadingText: {
-    color: "#fff",
-    fontSize: 16,
-    marginTop: 16,
+    fontSize: Typography.lg,
+    marginTop: Spacing.lg,
+    fontWeight: Typography.medium,
+    color: Colors.textPrimary,
   },
-
-  header: {
-    padding: 20,
-    paddingTop: 40,
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#333",
+  headerStats: {
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    marginBottom: Spacing.xl,
+    ...Shadows.md,
   },
-
-  title: {
-    color: "#fff",
-    fontSize: 28,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-
-  subtitle: {
-    color: "#8a8a8aff",
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 8,
-  },
-
-  totalUsers: {
-    color: "#666",
-    fontSize: 14,
-    textAlign: "center",
-  },
-
-  rankingsContainer: {
-    padding: 16,
-  },
-
-  rankingItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    backgroundColor: "#1a1a1a",
-    padding: 16,
-    marginBottom: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#333",
-    minHeight: 100,
-  },
-
-  topRanking: {
-    backgroundColor: "#2a1a00",
-    borderColor: "#FFD700",
-    borderWidth: 2,
-  },
-
-  podiumRanking: {
-    backgroundColor: "#1a1a1a",
-    borderColor: "#444",
-  },
-
-  rankInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-
-  rankIcon: {
-    fontSize: 24,
-    marginRight: 12,
-    fontWeight: "bold",
-  },
-
-  userInfo: {
-    flex: 1,
-  },
-
-  username: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-
-  score: {
-    color: "#8a8a8aff",
-    fontSize: 14,
-    marginBottom: 8,
-  },
-
   statsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
   },
-
-  statText: {
-    color: "#666",
-    fontSize: 12,
-    fontWeight: "500",
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
   },
-
-  achievementsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
+  statNumber: {
+    fontSize: Typography['2xl'],
+    fontWeight: Typography.bold,
+    marginVertical: Spacing.sm,
+    color: Colors.textPrimary,
   },
-
-  achievementBadge: {
-    backgroundColor: "#333",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginRight: 6,
-    marginBottom: 4,
+  statLabel: {
+    fontSize: Typography.sm,
+    textAlign: 'center',
+    color: Colors.textSecondary,
   },
-
-  achievementText: {
-    color: "#FFD700",
-    fontSize: 10,
-    fontWeight: "600",
+  rankingsContainer: {
+    gap: Layout.componentSpacing.cardGap,
   },
-
-  moreAchievements: {
-    color: "#666",
-    fontSize: 10,
-    fontStyle: "italic",
-  },
-
-  badge: {
-    backgroundColor: "#333",
-    padding: 8,
-    borderRadius: 20,
-    marginLeft: 12,
-  },
-
   errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 40,
+    alignItems: 'center',
+    padding: Layout.componentSpacing.contentPadding,
+    borderRadius: BorderRadius.lg,
+    margin: Layout.componentSpacing.contentPadding,
+    ...Shadows.level1,
   },
-
+  errorIcon: {
+    marginBottom: Spacing.lg,
+  },
   errorText: {
-    color: "#ff6b6b",
-    fontSize: 16,
-    textAlign: "center",
-    marginTop: 16,
-    marginBottom: 24,
+    fontSize: Typography.lg,
+    textAlign: 'center',
+    marginBottom: Spacing.xl,
+    fontWeight: Typography.medium,
+    color: Colors.textPrimary,
   },
-
   retryButton: {
-    backgroundColor: "#ff6b6b",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    ...Shadows.sm,
   },
-
   retryButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: Typography.base,
+    fontWeight: Typography.semibold,
+    color: Colors.textPrimary,
   },
-
   emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 40,
+    alignItems: 'center',
+    padding: Layout.componentSpacing.contentPadding,
+    borderRadius: BorderRadius.lg,
+    margin: Layout.componentSpacing.contentPadding,
+    ...Shadows.level1,
   },
-
+  emptyIcon: {
+    marginBottom: Spacing.lg,
+  },
   emptyText: {
-    color: "#8a8a8aff",
-    fontSize: 18,
-    fontWeight: "600",
-    marginTop: 16,
-    textAlign: "center",
+    fontSize: Typography.xl,
+    fontWeight: Typography.semibold,
+    marginBottom: Spacing.sm,
+    textAlign: 'center',
+    color: Colors.textPrimary,
   },
-
   emptySubtext: {
-    color: "#666",
-    fontSize: 14,
-    marginTop: 8,
-    textAlign: "center",
+    fontSize: Typography.sm,
+    textAlign: 'center',
+    color: Colors.textSecondary,
   },
 });

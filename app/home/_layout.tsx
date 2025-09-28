@@ -24,9 +24,17 @@ export default function TabsLayout() {
         options={{ headerShown: false, title: "Home" }}
       />
       <Stack.Screen name="build-room" options={{ headerShown: false }} />
-      <Stack.Screen name="join-room" options={{ title: "Join Room" }} />
-      <Stack.Screen name="set-theme" options={{ title: "Configure Room" }} />
-      <Stack.Screen name="world-arena" options={{ title: "World Arena" }} />
+      <Stack.Screen name="join-room" options={{ headerShown: false }} />
+      <Stack.Screen name="set-theme" options={{ headerShown: false }} />
+      <Stack.Screen name="world-arena" options={{ headerShown: false }} />
+      <Stack.Screen 
+        name="profile" 
+        options={{ 
+          headerShown: false,
+          presentation: 'modal',
+          gestureEnabled: false
+        }} 
+      />
     </Stack>
   );
 }

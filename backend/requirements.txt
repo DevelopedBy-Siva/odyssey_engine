@@ -1,0 +1,14 @@
+# Core dependencies
+redis==5.0.1
+requests==2.31.0
+
+# Flask web framework
+flask==3.0.3
+flask-socketio==5.3.6
+flask-cors==4.0.0
+
+# Async support
+eventlet==0.35.2
+
+# Additional dependencies for production
+python-dotenv==1.0.0
