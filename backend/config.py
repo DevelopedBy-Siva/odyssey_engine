@@ -9,7 +9,7 @@ class Config:
     REDIS_PORT = int(os.environ.get('REDIS_PORT', 18552))
     REDIS_DB = int(os.environ.get('REDIS_DB', 0))
     REDIS_USERNAME = os.environ.get('REDIS_USERNAME', 'default')
-    REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD', 'l55AXKcgrS4UeVU3dE6waEmc39tkvyl9')
+    REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD', '')
     
     # SocketIO Configuration
     SOCKETIO_CORS_ALLOWED_ORIGINS = os.environ.get('SOCKETIO_CORS_ALLOWED_ORIGINS', "*")
@@ -28,12 +28,12 @@ class Config:
     AI_PROVIDER = os.environ.get('AI_PROVIDER', 'mistral')
     
     # Mistral AI Configuration
-    MISTRAL_API_KEY = os.environ.get('MISTRAL_API_KEY', '94hOrIBRomJvJUwXmbmp45wDFje09FPS')
+    MISTRAL_API_KEY = os.environ.get('MISTRAL_API_KEY', '')
     MISTRAL_MODEL = os.environ.get('MISTRAL_MODEL', 'mistral-large-latest')
     MISTRAL_BASE_URL = os.environ.get('MISTRAL_BASE_URL', 'https://api.mistral.ai/v1/chat/completions')
     
     # Gemini AI Configuration
-    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyAToV4DgDW4LW0wOR_qZD7ItP-PU4lpnkE')
+    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
     GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-1.5-pro')
     GEMINI_BASE_URL = os.environ.get('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta/models')
     
